@@ -43,9 +43,11 @@ public class PayBackJack extends SPIEL {
     private BotSpieler bot1, bot2, bot3;
     private TextE bot1Label, bot2Label, bot3Label;
     
-    private boolean rundeLaeuft;
-    private boolean setzPhase;
     private boolean dealerKarteSichtbar; // Lupe-Effekt
+    
+    // SOUNDS & MUSIK
+    private Sound musikTisch, musikBar;
+    private Sound sfxCardDeal, sfxCardFlip, sfxCollapse, sfxError, sfxHover, sfxBuy, sfxMagnifier, sfxSmoke;
     
     private static final int BJ_X = 380; // Start rechts von Sidebar
     
@@ -56,6 +58,25 @@ public class PayBackJack extends SPIEL {
     
     public PayBackJack() {
         super(1920, 1080, false, false, true);
+        
+        // --- SOUNDS INITIALISIEREN ---
+        musikTisch = new Sound("../Assets/Sounds/SFX/music_table.wav");
+        musikBar = new Sound("../Assets/Sounds/SFX/music_bar.wav");
+        
+        sfxCardDeal = new Sound("../Assets/Sounds/SFX/sfx_card_deal.wav");
+        sfxCardFlip = new Sound("../Assets/Sounds/SFX/sfx_card_flip");
+        sfxCollapse = new Sound("../Assets/Sounds/SFX/sfx_collapse");
+        sfxError = new Sound("../Assets/Sounds/SFX/sfx_error");
+        sfxHover = new Sound("../Assets/Sounds/SFX/sfx_hover");
+        sfxBuy = new Sound("../Assets/Sounds/SFX/sfx_buy");
+        sfxMagnifier = new Sound("../Assets/Sounds/SFX/sfx_magnifier");
+        sfxSmoke = new Sound("../Assets/Sounds/SFX/sfx_smoke.wav");
+        
+        // Musik im Hintergrund starten und sofort pausieren
+        musikTisch.loop();
+        musikTisch.pause();
+        musikBar.loop();
+        musikBar.pause();
         
         spielstand = new Spielstand();
         barSzene = new BarSzene();
@@ -142,10 +163,12 @@ public class PayBackJack extends SPIEL {
         
         // === SZENEN-WECHSEL (immer verfügbar) ===
         if (taste == Taste._1 && !rundeLaeuft) {
+            sfxHover.play();
             wechselZuBlackjack();
             return;
         }
         if (taste == Taste._2 && !rundeLaeuft) {
+            sfxHover.play();
             wechselZuBar();
             return;
         }
@@ -161,10 +184,23 @@ public class PayBackJack extends SPIEL {
         }
         
         // === INVENTAR NUTZEN (3-8) - Nur am Tisch möglich ===
-        if (aktuelleSzene.equals("blackjack") && taste >= 3 && taste <= 8) {
-            spielstand.itemNutzen(taste - 3);
-            sidebar.aktualisieren(spielstand);
-            bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+        if (aktuelleSzene.equals("blackjack") && taste >= Taste._3 && taste <= Taste._8) {
+            int slot = 0;
+            if (taste == Taste._3) slot = 0;
+            if (taste == Taste._4) slot = 1;
+            if (taste == Taste._5) slot = 2;
+            if (taste == Taste._6) slot = 3;
+            if (taste == Taste._7) slot = 4;
+            if (taste == Taste._8) slot = 5;
+
+            String item = spielstand.getInventar()[slot];
+            if (item != null) {
+                if (item.equals("Zigarette")) sfxSmoke.play();
+                if (item.equals("Lupe")) sfxMagnifier.play();
+                spielstand.itemNutzen(slot);
+                sidebar.aktualisieren(spielstand);
+                bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+            }
         }
     }
     
@@ -175,6 +211,11 @@ public class PayBackJack extends SPIEL {
     private void wechselZuBlackjack() {
         barSzene.verstecken();
         cutscene.verstecken();
+        
+        // MUSIK WECHSEL
+        musikBar.pause();
+        musikTisch.unpause();
+        
         blackjackAnzeigen();
         aktuelleSzene = "blackjack";
         sidebar.szeneMarkieren("blackjack");
@@ -185,6 +226,11 @@ public class PayBackJack extends SPIEL {
     private void wechselZuBar() {
         blackjackVerstecken();
         cutscene.verstecken();
+        
+        // MUSIK WECHSEL
+        musikTisch.pause();
+        musikBar.unpause();
+        
         barSzene.anzeigen();
         barSzene.aktualisieren(spielstand);
         aktuelleSzene = "bar";
@@ -250,12 +296,16 @@ public class PayBackJack extends SPIEL {
         
         // Austeilen: Spieler, Bots und Dealer
         spielerHand.karteHinzufuegen(deck.karteZiehen());
+        sfxCardDeal.play();
         if (bot1 != null) bot1.getHand().karteHinzufuegen(deck.karteZiehen());
         dealerHand.karteHinzufuegen(deck.karteZiehen());
+        sfxCardDeal.play();
         
         spielerHand.karteHinzufuegen(deck.karteZiehen());
+        sfxCardDeal.play();
         if (bot1 != null) bot1.getHand().karteHinzufuegen(deck.karteZiehen());
         dealerHand.karteHinzufuegen(deck.karteZiehen()); // Dealer bekommt 2. Karte
+        sfxCardDeal.play();
         
         // Bots spielen sofort
         botsSpielenLassen();
@@ -285,12 +335,16 @@ public class PayBackJack extends SPIEL {
     
     private void botsSpielenLassen() {
         if (bot1 != null) {
-            while (bot1.willZiehen()) bot1.getHand().karteHinzufuegen(deck.karteZiehen());
+            while (bot1.willZiehen()) {
+                bot1.getHand().karteHinzufuegen(deck.karteZiehen());
+                sfxCardDeal.play();
+            }
         }
     }
     
     private void hit() {
         spielerHand.karteHinzufuegen(deck.karteZiehen());
+        sfxCardDeal.play();
         spielerHand.alleZentriertAnzeigen(960, 768, false);
         int p = spielerHand.punkteBerechnen();
         bjSpielerPunkte.inhaltSetzen("Punkte: " + p);
@@ -309,6 +363,7 @@ public class PayBackJack extends SPIEL {
             spielstand.setEinsatz(einsatz * 2);
             
             spielerHand.karteHinzufuegen(deck.karteZiehen());
+            sfxCardDeal.play();
             spielerHand.alleZentriertAnzeigen(960, 768, false);
             bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
             
@@ -325,11 +380,13 @@ public class PayBackJack extends SPIEL {
     
     private void stand() {
         // Dealer deckt auf
+        sfxCardFlip.play();
         dealerHand.positionAnzeigen(714, 78, false);
         
         // Dealer zieht
         while (dealerHand.punkteBerechnen() < 17) {
             dealerHand.karteHinzufuegen(deck.karteZiehen());
+            sfxCardDeal.play();
         }
         dealerHand.positionAnzeigen(714, 78, false);
         
@@ -352,6 +409,7 @@ public class PayBackJack extends SPIEL {
     
     private void lupeBenuetzen() {
         if (spielstand.kannLupeNutzen() && rundeLaeuft && !dealerKarteSichtbar) {
+            sfxMagnifier.play();
             spielstand.lupeBenutzen();
             bjDealerPunkte.inhaltSetzen("Dealer: " + dealerHand.punkteBerechnen());
             dealerKarteSichtbar = true;
@@ -371,6 +429,7 @@ public class PayBackJack extends SPIEL {
         
         // Kollaps prüfen
         if (spielstand.istKollabiert()) {
+            sfxCollapse.play();
             spielstand.kollapsDurchfuehren();
             bjStatus.inhaltSetzen("KOLLABIERT! -5000€ Strafe. [LEERTASTE]");
         }
@@ -407,46 +466,57 @@ public class PayBackJack extends SPIEL {
     private void barTaste(int taste) {
         if (taste == Taste._3) {
             if (spielstand.suppeKaufen()) {
+                sfxBuy.play();
                 barSzene.setFeedback("Suppe gekauft! Slot [3]");
                 barSzene.juanSagt("Gute Wahl. Staerkt die Nerven.");
             } else {
+                sfxError.play();
                 barSzene.setFeedback("Inventar voll oder kein Geld!");
             }
         }
         if (taste == Taste._4) {
             if (spielstand.wasserKaufen()) {
+                sfxBuy.play();
                 barSzene.setFeedback("Wasser gekauft! Slot [4]");
                 barSzene.juanSagt("Klares Wasser. Selten hier unten.");
             } else {
+                sfxError.play();
                 barSzene.setFeedback("Inventar voll oder kein Geld!");
             }
         }
         if (taste == Taste._5) {
             if (spielstand.bierKaufen()) {
+                sfxBuy.play();
                 barSzene.setFeedback("Bier gekauft! Slot [5]");
                 barSzene.juanSagt("Prost! Aber pass auf...");
             } else {
+                sfxError.play();
                 barSzene.setFeedback("Inventar voll oder kein Geld!");
             }
         }
         if (taste == Taste._6) {
             if (spielstand.lupeKaufen()) {
+                sfxBuy.play();
                 barSzene.setFeedback("Lupe gekauft! Druecke [L] am Tisch.");
                 barSzene.juanSagt("Damit siehst du was der Dealer hat. Alle 10 Runden.");
             } else {
+                sfxError.play();
                 barSzene.setFeedback("Zu teuer oder Inventar voll!");
             }
         }
         if (taste == Taste._7) {
             if (spielstand.getGeld() >= 500) {
                 if (spielstand.itemHinzufuegen("Zigarette")) {
+                    sfxBuy.play();
                     spielstand.geldAendern(-500);
                     barSzene.setFeedback("Zigarette gekauft!");
                     barSzene.juanSagt("Die bringen Glueck... sagt man.");
                 } else {
+                    sfxError.play();
                     barSzene.setFeedback("Inventar voll!");
                 }
             } else {
+                sfxError.play();
                 barSzene.setFeedback("Nicht genug Geld!");
             }
         }
