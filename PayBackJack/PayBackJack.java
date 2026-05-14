@@ -44,6 +44,8 @@ public class PayBackJack extends SPIEL {
     private BotSpieler bot1, bot2, bot3;
     private TextE bot1Label, bot2Label, bot3Label;
     
+    private boolean rundeLaeuft;
+    private boolean setzPhase;
     private boolean dealerKarteSichtbar; // Lupe-Effekt
     
     // SOUNDS & MUSIK
