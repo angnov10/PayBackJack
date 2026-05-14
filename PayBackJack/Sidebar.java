@@ -51,7 +51,7 @@ public class Sidebar {
     
     public Sidebar() {
         // Hintergrund der Sidebar (Startet bei X=120, Breite 480)
-        hintergrund = new BildE(SIDEBAR_X, 0, "/Users/an/PayBackJack/assets/Sprites/Sidebar/Background_160x360.png");
+        hintergrund = new BildE(SIDEBAR_X, 0, "../Assets/Sprites/Sidebar/Background_160x360.png");
         
         // === TITEL ===
         titelText = new TextE("PAYBACK JACK");
@@ -153,7 +153,7 @@ public class Sidebar {
             
             // Alle 5 möglichen Icons für diesen Slot erstellen
             for (int j = 0; j < 5; j++) {
-                String pfad = "/Users/an/PayBackJack/assets/Sprites/Items/" + itemNamen[j] + "_20x20.png";
+                String pfad = "../Assets/Sprites/Items/" + itemNamen[j] + "_20x20.png";
                 itemIcons[i][j] = new BildE(slotX + 50, slotY, pfad);
                 itemIcons[i][j].sichtbarSetzen(false);
             }

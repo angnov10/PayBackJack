@@ -24,11 +24,11 @@ public class Karte {
         else if (pName.equals("Ass")) fileName = "A";
         
         // Absolute Pfade, da BlueJ aus dem Unterordner gestartet wird
-        String pfad = "/Users/an/PayBackJack/assets/Karten/" + farbe + "/" + farbe + fileName + ".png";
+        String pfad = "../Assets/Karten/" + farbe + "/" + farbe + fileName + ".png";
         bild = new BildE(0, 0, pfad);
         bild.sichtbarSetzen(false);
         
-        String rueckPfad = "/Users/an/PayBackJack/assets/Karten/Rückseite.png";
+        String rueckPfad = "../Assets/Karten/Rückseite.png";
         rueckseite = new BildE(0, 0, rueckPfad);
         rueckseite.sichtbarSetzen(false);
     }

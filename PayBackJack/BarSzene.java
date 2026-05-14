@@ -38,14 +38,14 @@ public class BarSzene {
     
     public BarSzene() {
         // Bar Hintergrund (jetzt über das ganze Bild)
-        hintergrund = new BildE(0, 0, "/Users/an/PayBackJack/assets/Sprites/Bar/Background_640x360.png");
+        hintergrund = new BildE(0, 0, "../Assets/Sprites/Bar/Background_640x360.png");
         hintergrund.sichtbarSetzen(false);
         
         // Juan (vergroessert)
-        juanKoerper = new BildE(OFFSET_X + 150, 540, "/Users/an/PayBackJack/assets/Sprites/Bar/JuanBody_40x80.png");
+        juanKoerper = new BildE(OFFSET_X + 150, 540, "../Assets/Sprites/Bar/JuanBody_40x80.png");
         juanKoerper.sichtbarSetzen(false);
         
-        juanKopf = new BildE(OFFSET_X + 170, 460, "/Users/an/PayBackJack/assets/Sprites/Bar/JuanHead_26x26.png");
+        juanKopf = new BildE(OFFSET_X + 170, 460, "../Assets/Sprites/Bar/JuanHead_26x26.png");
         juanKopf.sichtbarSetzen(false);
         
         juanName = new TextE("Juan");

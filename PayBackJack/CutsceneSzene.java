@@ -19,7 +19,7 @@ public class CutsceneSzene {
     private static final int OFFSET_X = 600;
     
     public CutsceneSzene() {
-        hintergrund = new BildE(0, 0, "/Users/an/PayBackJack/assets/Sprites/Bar/Background_640x360.png");
+        hintergrund = new BildE(0, 0, "../Assets/Sprites/Bar/Background_640x360.png");
         hintergrund.sichtbarSetzen(false);
         
         zeile1 = new TextE("");

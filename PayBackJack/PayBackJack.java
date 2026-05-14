@@ -62,7 +62,7 @@ public class PayBackJack extends SPIEL {
         cutscene = new CutsceneSzene();
         
         // === BLACKJACK TISCH AUFBAUEN ===
-        tischHintergrund = new BildE(0, 0, "/Users/an/PayBackJack/assets/Sprites/Tisch/Background_640x360.png");
+        tischHintergrund = new BildE(0, 0, "../Assets/Sprites/Tisch/Background_640x360.png");
         tischHintergrund.sichtbarSetzen(false);
         
         bjStatus = new TextE("Druecke LEERTASTE zum Starten");
