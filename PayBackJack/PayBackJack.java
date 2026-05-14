@@ -1,4 +1,5 @@
 import ea.edu.*;
+import ea.Sound;
 import ea.Taste;
 
 /**
