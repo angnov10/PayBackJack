@@ -1,0 +1,14 @@
+# Kompilierte Dateien
+*.class
+
+# BlueJ Dateien
+*.ctxt
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# BlueJ Backup
+*~
