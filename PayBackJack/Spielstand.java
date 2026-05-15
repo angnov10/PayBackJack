@@ -37,7 +37,7 @@ public class Spielstand {
     public int getEinsatz() { return einsatz; }
     public void setEinsatz(int e) { einsatz = e; }
     
-    public boolean istPleite() { return geld < 0; }
+    public boolean istPleite() { return geld <= 0; }
     public boolean hatGewonnen() { return geld >= ZIEL_BETRAG; }
     public int getZielBetrag() { return ZIEL_BETRAG; }
     
