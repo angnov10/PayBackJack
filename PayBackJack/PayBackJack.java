@@ -115,7 +115,7 @@ public class PayBackJack extends SPIEL {
         bjSpielerLabel.sichtbarSetzen(false);
         
         bjSpielerPunkte = new TextE("Punkte: 0");
-        bjSpielerPunkte.positionSetzen(960, 710); // Mittig ueber Karten
+        bjSpielerPunkte.mittelpunktSetzen(960, 710); // Mittig ueber Karten
         bjSpielerPunkte.farbeSetzen("Weiß");
         bjSpielerPunkte.sichtbarSetzen(false);
         
