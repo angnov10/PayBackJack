@@ -31,6 +31,7 @@ public class PayBackJack extends SPIEL {
     
     // Blackjack-Tisch Elemente
     private BildE tischHintergrund;
+    private BildE anleitung;
     private TextE bjStatus;
     private TextE bjSpielerLabel;
     private TextE bjDealerLabel;
@@ -89,11 +90,13 @@ public class PayBackJack extends SPIEL {
         tischHintergrund = new BildE(0, 0, "../Assets/Sprites/Tisch/Background_640x360.png");
         tischHintergrund.sichtbarSetzen(false);
         
-        bjStatus = new TextE("Druecke LEERTASTE zum Starten");
-        bjStatus.positionSetzen(700, 30);
-        bjStatus.farbeSetzen("Gelb");
-        bjStatus.groesseSetzen(22);
+        bjStatus = new TextE("");
+        bjStatus.positionSetzen(960, 480);
         bjStatus.sichtbarSetzen(false);
+        bjStatus.zentrumSetzen(true);
+        
+        anleitung = new BildE(620, 20, "../Assets/Sprites/Table/Instructions_130x100.png");
+        anleitung.sichtbarSetzen(false);
         
         bjDealerLabel = new TextE("DEALER");
         bjDealerLabel.positionSetzen(714, 20);
@@ -112,7 +115,7 @@ public class PayBackJack extends SPIEL {
         bjSpielerLabel.groesseSetzen(18);
         bjSpielerLabel.sichtbarSetzen(false);
         
-        bjSpielerPunkte = new TextE("");
+        bjSpielerPunkte = new TextE("Punkte: 0");
         bjSpielerPunkte.positionSetzen(960, 710); // Mittig ueber Karten
         bjSpielerPunkte.farbeSetzen("Weiß");
         bjSpielerPunkte.sichtbarSetzen(false);
@@ -233,8 +236,9 @@ public class PayBackJack extends SPIEL {
         blackjackAnzeigen();
         aktuelleSzene = "blackjack";
         sidebar.szeneMarkieren("blackjack");
+        anleitung.sichtbarSetzen(true);
+        bjStatus.inhaltSetzen("");
         setzPhase = true;
-        bjStatus.inhaltSetzen("Pfeiltasten = Einsatz | LEERTASTE = Start");
     }
     
     private void wechselZuBar() {
@@ -336,7 +340,7 @@ public class PayBackJack extends SPIEL {
         
         bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
         bjDealerPunkte.inhaltSetzen("Dealer: ?");
-        bjStatus.inhaltSetzen("[H] Hit | [S] Stand | [D] Double | [L] Lupe");
+        bjStatus.inhaltSetzen("");
         
         sidebar.aktualisieren(spielstand);
         
@@ -362,7 +366,7 @@ public class PayBackJack extends SPIEL {
         spielerHand.alleZentriertAnzeigen(960, 768, false);
         int p = spielerHand.punkteBerechnen();
         bjSpielerPunkte.inhaltSetzen("Punkte: " + p);
-        bjStatus.inhaltSetzen("[H] Hit | [S] Stand");
+        bjStatus.inhaltSetzen("");
         
         if (p > 21) {
             bjStatus.inhaltSetzen("BUST! " + spielstand.getEinsatz() + "€ verloren.");
@@ -478,7 +482,7 @@ public class PayBackJack extends SPIEL {
             aktuelleSzene = "cutscene";
         } else {
             setzPhase = true;
-            bjStatus.inhaltSetzen("Einsatz: [Hoch/Runter] | Start: [LEER]");
+            bjStatus.inhaltSetzen("");
         }
     }
     
@@ -572,6 +576,7 @@ public class PayBackJack extends SPIEL {
     
     private void blackjackVerstecken() {
         tischHintergrund.sichtbarSetzen(false);
+        anleitung.sichtbarSetzen(false);
         bjStatus.sichtbarSetzen(false);
         bjSpielerLabel.sichtbarSetzen(false);
         bjDealerLabel.sichtbarSetzen(false);
