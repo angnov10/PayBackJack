@@ -206,6 +206,14 @@ public class PayBackJack extends SPIEL {
                 sidebar.aktualisieren(spielstand);
                 if (aktuelleSzene.equals("bar")) barSzene.aktualisieren(spielstand);
                 bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+                
+                // SOFORT checken ob man durch das Item kollabiert ist (z.B. zu viel Bier)
+                if (spielstand.istKollabiert()) {
+                    if (aktuelleSzene.equals("bar")) {
+                        wechselZuBlackjack(); // Zurueck zum Tisch um die Nachricht zu sehen
+                    }
+                    pruefeSpielstatus();
+                }
             }
         }
     }
