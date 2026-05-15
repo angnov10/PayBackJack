@@ -449,6 +449,15 @@ public class PayBackJack extends SPIEL {
     }
     
     private void pruefeSpielstatus() {
+        // Erstmal Kollaps checken
+        if (spielstand.istKollabiert()) {
+            sfxCollapse.play();
+            spielstand.kollapsDurchfuehren();
+            bjStatus.inhaltSetzen("KOLLABIERT! -5000€ Strafe. [LEERTASTE]");
+            sidebar.aktualisieren(spielstand);
+            return; // Erstmal erholen
+        }
+        
         if (spielstand.hatGewonnen()) {
             blackjackVerstecken();
             cutscene.ladeGewinn();
