@@ -91,9 +91,8 @@ public class PayBackJack extends SPIEL {
         tischHintergrund.sichtbarSetzen(false);
         
         bjStatus = new TextE("");
-        bjStatus.positionSetzen(960, 480);
+        bjStatus.mittelpunktSetzen(960, 480);
         bjStatus.sichtbarSetzen(false);
-        bjStatus.zentrumSetzen(true);
         
         anleitung = new BildE(1510, 20, "../Assets/Sprites/Table/Instructions_130x100.png");
         anleitung.sichtbarSetzen(false);
