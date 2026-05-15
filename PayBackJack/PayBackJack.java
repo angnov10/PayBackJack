@@ -95,7 +95,7 @@ public class PayBackJack extends SPIEL {
         bjStatus.sichtbarSetzen(false);
         bjStatus.zentrumSetzen(true);
         
-        anleitung = new BildE(620, 20, "../Assets/Sprites/Table/Instructions_130x100.png");
+        anleitung = new BildE(1510, 20, "../Assets/Sprites/Table/Instructions_130x100.png");
         anleitung.sichtbarSetzen(false);
         
         bjDealerLabel = new TextE("DEALER");
