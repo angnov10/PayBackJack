@@ -62,6 +62,7 @@ public class PayBackJack extends SPIEL {
     
     public PayBackJack() {
         super(1920, 1080, false, false, true);
+        aktuelleSzene = "intro_loading";
         
         // --- SOUNDS INITIALISIEREN ---
         musikTisch = new Sound("../Assets/Sounds/SFX/music_table.wav");
@@ -151,9 +152,10 @@ public class PayBackJack extends SPIEL {
     
     @Override
     public void tasteReagieren(int taste) {
+        if (aktuelleSzene == null) return;
         
         // === CUTSCENE ===
-        if (aktuelleSzene.equals("cutscene")) {
+        if ("cutscene".equals(aktuelleSzene)) {
             if (taste == Taste.LEERTASTE) {
                 boolean fertig = cutscene.weiter();
                 if (fertig) {
@@ -179,17 +181,17 @@ public class PayBackJack extends SPIEL {
         }
         
         // === BLACKJACK SZENE ===
-        if (aktuelleSzene.equals("blackjack")) {
+        if ("blackjack".equals(aktuelleSzene)) {
             blackjackTaste(taste);
         }
         
         // === BAR SZENE ===
-        if (aktuelleSzene.equals("bar")) {
+        if ("bar".equals(aktuelleSzene)) {
             barTaste(taste);
         }
         
         // === INVENTAR NUTZEN (3-8) - In jeder Szene möglich ===
-        if ((aktuelleSzene.equals("blackjack") || aktuelleSzene.equals("bar")) && taste >= Taste._3 && taste <= Taste._8) {
+        if (("blackjack".equals(aktuelleSzene) || "bar".equals(aktuelleSzene)) && taste >= Taste._3 && taste <= Taste._8) {
             int slot = 0;
             if (taste == Taste._3) slot = 0;
             if (taste == Taste._4) slot = 1;
