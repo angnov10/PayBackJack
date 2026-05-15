@@ -186,8 +186,8 @@ public class PayBackJack extends SPIEL {
             barTaste(taste);
         }
         
-        // === INVENTAR NUTZEN (3-8) - Nur am Tisch möglich ===
-        if (aktuelleSzene.equals("blackjack") && taste >= Taste._3 && taste <= Taste._8) {
+        // === INVENTAR NUTZEN (3-8) - In jeder Szene möglich ===
+        if ((aktuelleSzene.equals("blackjack") || aktuelleSzene.equals("bar")) && taste >= Taste._3 && taste <= Taste._8) {
             int slot = 0;
             if (taste == Taste._3) slot = 0;
             if (taste == Taste._4) slot = 1;
@@ -199,9 +199,12 @@ public class PayBackJack extends SPIEL {
             String item = spielstand.getInventar()[slot];
             if (item != null) {
                 if (item.equals("Zigarette")) sfxSmoke.play();
-                if (item.equals("Lupe")) sfxMagnifier.play();
+                else if (item.equals("Lupe")) sfxMagnifier.play();
+                else sfxBuy.play(); // Platzhalter fuer Essen/Trinken Sound
+                
                 spielstand.itemNutzen(slot);
                 sidebar.aktualisieren(spielstand);
+                if (aktuelleSzene.equals("bar")) barSzene.aktualisieren(spielstand);
                 bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
             }
         }

@@ -62,9 +62,9 @@ public class Spielstand {
      */
     public void rundeVorbei() {
         rundenGespielt++;
-        hunger -= 3;
-        durst -= 4;
-        if (alkohol > 0) alkohol -= 1;
+        hunger -= 8;  // Erhoeht von 3
+        durst -= 10;  // Erhoeht von 4
+        if (alkohol > 0) alkohol -= 2;
         if (lupeAbklingzeit > 0) lupeAbklingzeit--;
         
         // Grenzen einhalten
@@ -126,19 +126,23 @@ public class Spielstand {
         if (slot < 0 || slot >= inventar.length || inventar[slot] == null) return;
         
         String item = inventar[slot];
+        boolean verbraucht = true; // Fast alle Items werden verbraucht
+        
         if (item.equals("Suppe")) {
-            hungerAendern(30);
+            hungerAendern(40);
         } else if (item.equals("Wasser")) {
-            durstAendern(20);
+            durstAendern(30);
         } else if (item.equals("Bier")) {
-            alkoholAendern(15);
-            durstAendern(10);
+            alkoholAendern(20);
+            durstAendern(15);
         } else if (item.equals("Zigarette")) {
             zigaretten++;
-            inventar[slot] = null;
         } else if (item.equals("Lupe")) {
-            // Lupe wird nicht verbraucht durch "Nutzen" Taste 3-8
-            // Sie wird über L am Tisch benutzt
+            verbraucht = false; // Lupe bleibt im Inventar
+        }
+        
+        if (verbraucht) {
+            inventar[slot] = null;
         }
     }
     
