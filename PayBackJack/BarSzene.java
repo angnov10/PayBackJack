@@ -118,6 +118,9 @@ public class BarSzene {
         feedbackText.groesseSetzen(18);
         feedbackText.sichtbarSetzen(false);
         
+        // Pixelify Sans Schriftart anwenden
+        FontHelper.anwenden(juanName, juanDialog, menuTitle, menuSuppe, menuWasser, menuBier, itemTitle, itemLupe, itemZigarette, steuerungText, feedbackText);
+        
         sichtbar = false;
     }
     

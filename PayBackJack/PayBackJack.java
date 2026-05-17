@@ -133,6 +133,9 @@ public class PayBackJack extends SPIEL {
         bot2Label = null;
         bot3Label = null;
         
+        // Pixelify Sans Schriftart anwenden
+        FontHelper.anwenden(bjStatus, bjDealerLabel, bjDealerPunkte, bjSpielerLabel, bjSpielerPunkte, bot1Label);
+        
         rundeLaeuft = false;
         setzPhase = true;
         dealerKarteSichtbar = false;

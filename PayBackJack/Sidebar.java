@@ -176,6 +176,10 @@ public class Sidebar {
         btnBar = new TextE("[2] Bar");
         btnBar.positionSetzen(itemsStartX + 180, switchStartY + 45);
         btnBar.farbeSetzen("Weiß");
+        
+        // Pixelify Sans Schriftart anwenden
+        FontHelper.anwenden(titelText, geldText, einsatzText, zielText, rundenText, hungerLabel, durstLabel, alkoholLabel, itemsTitle, lupeText, aktuellerOrt, btnBlackjack, btnBar);
+        FontHelper.anwenden(inventarSlots);
     }
     
     /**

@@ -58,6 +58,9 @@ public class CutsceneSzene {
         weiterText.groesseSetzen(18);
         weiterText.sichtbarSetzen(false);
         
+        // Pixelify Sans Schriftart anwenden
+        FontHelper.anwenden(zeile1, zeile2, zeile3, zeile4, zeile5, weiterText);
+        
         sichtbar = false;
         abgeschlossen = false;
     }
