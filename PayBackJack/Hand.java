@@ -68,6 +68,7 @@ public class Hand {
      */
     public void kartenZurueckgeben(Kartenstapel deck) {
         for (Karte k : kartenInHand) {
+            k.drehen(0); // Rotation fuer die Wiederverwendung zuruecksetzen!
             k.verstecken();
             if (deck != null) deck.zuruecknehmen(k);
         }
