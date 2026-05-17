@@ -47,6 +47,21 @@ public class Hand {
         alleAnzeigen(x, y, dealerVerdeckt);
     }
     
+    public void alleAnzeigenGedreht(int startX, int startY, double grad) {
+        int abstand = 110;
+        double rad = Math.toRadians(grad);
+        double stepX = abstand * Math.cos(rad);
+        double stepY = abstand * Math.sin(rad);
+        
+        for (int i = 0; i < kartenInHand.size(); i++) {
+            Karte k = kartenInHand.get(i);
+            int curX = (int) (startX + i * stepX);
+            int curY = (int) (startY + i * stepY);
+            k.drehen(grad);
+            k.anzeigen(curX, curY, false);
+        }
+    }
+    
     public void alleDrehen(double grad) {
         for (Karte k : kartenInHand) {
             k.drehen(grad);

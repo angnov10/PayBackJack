@@ -336,7 +336,6 @@ public class PayBackJack extends SPIEL {
         
         if (bot1 != null) {
             bot1.kartenAnzeigen(1428, 720); // Nach deinen Eckwerten
-            bot1.getHand().alleDrehen(-30);
         }
         
         bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
@@ -571,7 +570,6 @@ public class PayBackJack extends SPIEL {
             spielerHand.alleZentriertAnzeigen(960, 768, false);
             dealerHand.positionAnzeigen(714, 78, !dealerKarteSichtbar);
             bot1.kartenAnzeigen(1428, 720);
-            bot1.getHand().alleDrehen(-30);
         }
     }
     

@@ -56,7 +56,7 @@ public class BotSpieler {
      * Zeigt die Karten des Bots an einer Position an.
      */
     public void kartenAnzeigen(int x, int y) {
-        hand.alleAnzeigen(x, y, false);
+        hand.alleAnzeigenGedreht(x, y, -30);
     }
     
     /**
