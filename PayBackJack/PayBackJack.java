@@ -84,10 +84,6 @@ public class PayBackJack extends SPIEL {
         musikBar.pause();
         
         spielstand = new Spielstand();
-        
-        // Schriftarten ausgeben zur Fehlersuche
-        ea.edu.TextE.geladeneSchriftartenAusgeben();
-        
         barSzene = new BarSzene();
         cutscene = new CutsceneSzene();
         

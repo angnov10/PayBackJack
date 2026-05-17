@@ -6,7 +6,7 @@ import ea.edu.TextE;
  * Hilfsklasse zum zentralen Zuweisen der Pixelify Sans Schriftart auf Texte.
  */
 public class FontHelper {
-    public static final String FONT_NAME = "Pixelify Sans";
+    public static final String FONT_NAME = "Pixelify Sans Regular";
 
     /**
      * Wendet die Schriftart auf alle uebergebenen TextE-Objekte an.
