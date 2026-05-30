@@ -33,7 +33,7 @@ public class Hand {
     }
 
     public void alleAnzeigen(int startX, int startY, boolean dealerVerdeckt) {
-        int abstand = 110; // Abstand weiter erhoeht
+        int abstand = 88; // Abstand weiter erhoeht
         for (int i = 0; i < kartenInHand.size(); i++) {
             Karte k = kartenInHand.get(i);
             
@@ -48,7 +48,7 @@ public class Hand {
     }
     
     public void alleAnzeigenGedreht(int startX, int startY, double grad) {
-        int abstand = 110;
+        int abstand = 88;
         double rad = Math.toRadians(grad);
         double stepX = abstand * Math.cos(rad);
         double stepY = abstand * Math.sin(rad);
@@ -69,8 +69,8 @@ public class Hand {
     }
     
     public void alleZentriertAnzeigen(int centerX, int startY, boolean dealerVerdeckt) {
-        int abstand = 110;
-        int kartenBreite = 192;
+        int abstand = 88;
+        int kartenBreite = 154;
         int gesamtBreite = (kartenInHand.size() - 1) * abstand + kartenBreite;
         int startX = centerX - (gesamtBreite / 2);
         

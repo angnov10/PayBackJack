@@ -1,0 +1,191 @@
+================================================================================
+                    PAYBACKJACK – DAS 15-MINUTEN-ARCADE
+================================================================================
+
+Kern: Du schuldest Jack Geld. Du sitzt in seinem Keller. Drei Tische. Schummle,
+      trinke, iss, überlebe 15 Minuten. Erreiche 10.000€ am High-End-Tisch
+      und du bist frei.
+
+================================================================================
+1.  ZIEL & ENDBEDINGUNGEN (klar & nur noch diese)
+================================================================================
+
+→ SIEG: 10.000€ am High-End-Tisch erspielt → sofortige Cutscene, du entkommst.
+
+→ GAME OVER: Dein Kontostand fällt unter 0€.
+
+→ ZEIT ABGELAUFEN: Nach 15 Minuten endet das Spiel ohne Flucht (kein Sieg).
+
+(Die frühere 100.000€-Gesamtsumme ist gestrichen – sie war unrealistisch.)
+
+================================================================================
+2.  DIE DREI TISCHE (Übersichtstabelle)
+================================================================================
+
+Tisch         | Einsatz    | Schummeln | Suspicion  | Bar-Zugang | Besonderheit
+--------------|------------|-----------|------------|------------|---------------------
+Low-End       | niedrig    | sehr leicht| + langsam  | Ja         | Nach 2 Runden: Bar-Zwang
+(0 – 2.000€)  | (max 200€) |           | (unsichtbar)|           | (Hinweis durch geschnappten Nebenmann)
+--------------|------------|-----------|------------|------------|---------------------
+Mid-End       | mittel     | schwierig | sichtbare  | Ja         | Bier macht Bild verschwommen
+(2.000–5.000€)| (max 500€) |           | Leiste     |            | Schummeln +Verdacht
+--------------|------------|-----------|------------|------------|---------------------
+High-End      | hoch       | fast      | sinkt NICHT| NEIN       | Jack sitzt neben dir
+(5.000–10.000€)| (max 1.000€)| unmöglich | mehr unter 15% |          | Er bietet Bier an (Ja/Nein)
+              |            |           |            |            | Max. 2x Lupe, danach sofortige Durchsuchung
+
+================================================================================
+3.  ITEMS (vom Bartender & nutzbar)
+================================================================================
+
+Lupe    – Deckt die Dealer-Karte auf. Erhöht Verdacht um 20%.
+        – High-End: max. 2x einsetzbar, danach automatische Durchsuchung.
+
+Bier    – Senkt Verdacht um 15%. Macht das Bild verschwommen (Mid-End stärker).
+        – Erhöht Alkohol-Bar um 15%.
+        – Kostet am Tisch Geld (siehe Preise unten).
+
+Ass (2 Stück, vom Bartender vor High-End) – Kann als normale Karte (1 oder 11) gespielt werden,
+        zusätzlich zu deiner Hand (also 3 Karten). Sehr sicher, aber kein Schummeln.
+
+Zigarette (2 Stück, vom Bartender vor High-End) – Erhöht den Einsatz während der Runde
+        um 50% des aktuellen Einsatzes. Sofort +20% Verdacht.
+        Risiko: Ist Verdacht bereits >80%, löst die Zigarette SOFORT eine Durchsuchung aus.
+
+================================================================================
+4.  RESSOURCEN & PREISE (skaliert – jetzt spürbar)
+================================================================================
+
+Du hast vier Balken: HUNGER, DURST, ALKOHOL (Intus), VERDACHT. Jeder Balken 0–100%.
+
+EFFEKTE BEI VERNACHLÄSSIGUNG:
+
+→ HUNGER > 80%   : Du verlierst automatisch 50€ pro Runde (Zittern, Chips fallen).
+→ DURST  > 80%   : Verdacht steigt um +5% pro Runde (du schwitzt, riechst).
+→ BEIDE > 90%    : Zusätzlich EINMALIG 5.000€ Strafe (beim ersten Erreichen von 90%).
+→ ALKOHOL-SCHWELLEN:
+   0-30%  : kein Effekt
+  30-60%  : Bild leicht verschwommen, Dealer-Karte kurz falsch eingeblendet
+  60-90%  : Eigene Karte erscheint erst mit 0,5 Sekunden Verzögerung
+  90-100% : Keine Schummel-Items mehr nutzbar. Zufällige Fehleingaben (Hit/Stand vertauscht)
+
+→ VERDACHT:
+    <30%    : kein Effekt
+   30-60%   : Herzklopfen, ab und zu Geräusche im Hintergrund
+   60-90%   : Herzklopfen wird lauter
+   90-100% : Herzklopfen so laut, dass kein Sound mehr zu hören ist
+
+PREISE IN DER BAR (abhänig vom aktuellen Tisch, den du besuchst):
+
+Low-End-Tisch (0-2.000€)     Mid-End-Tisch (2.000-5.000€)     High-End-Tisch
+Suppe      80€               Suppe     200€                   KEIN Bar-Zugang!
+Wasser     60€               Wasser    150€
+Bier       40€               Bier      100€
+
+Zusätzlich (beide Tische):
+- Schmutziges Wasser (4€ bzw. 10€) – senkt Durst, aber +10% Verdacht.
+- Verdorbene Suppe (5€ bzw. 15€) – senkt Hunger, aber 30% Chance auf Übelkeit: Alle Karten 2 Runden verschwommen.
+
+================================================================================
+5.  DURCHSUCHUNGS-MECHANIC (das Herz der Spannung)
+================================================================================
+
+AKTIVIERUNG:
+- Mid-End-Tisch:  1/8 Chance pro Runde
+- High-End-Tisch: 1/5 Chance pro Runde 
+- Zusätzlich: Jedes Mal, wenn du schummelst (Lupe, Zigarette), erhöht sich die Chance
+  für die NÄCHSTE Runde um +5% (additiv). Maximal 50% Gesamtchance.
+  Zurücksetzung: nach einer Durchsuchung ODER nach 3 Runden ohne Schummeln.
+
+ABLAUF BEI DURCHSUCHUNG:
+1. Auf dem Bildschirm erscheint ein horizontaler Streifen (Safe-Bereich).
+2. Ein dicker Strich wandert von links nach rechts und wieder zurück.
+3. Drücke LEERTASTE, um den Strich zu stoppen.
+4. Stoppt der Strich IM Safe-Bereich → nichts gefunden.
+5. Stoppt er außerhalb → verbotenes Item gefunden:
+   → Geld wird auf 1.000€ zurückgesetzt.
+   → Alle Items (Lupen, Asse, Zigaretten) sind weg.
+   (Bier und Essen bleiben, aber die sind ja verbraucht.)
+
+VERSCHÄRFUNG:
+- Der Safe-Bereich (der grüne Bereich auf der Leiste) wird nach JEDER Durchsuchung
+  (egal ob gefunden oder nicht) um 20% seiner aktuellen Länge kleiner.
+- Nach 3 Durchsuchungen ist der Safe-Bereich nur noch 10% der Leiste breit.
+- Das simuliert, dass Jack misstrauischer wird.
+
+================================================================================
+6.  BAR & BARTENDER – ABLÄUFE
+================================================================================
+
+Low-End:
+- Nach 2 Runden zwingt dich der Bartender zum Gespräch (Nachbar wurde geschnappt).
+- Er gibt dir kostenlos: 1 Lupe + 1 Bier. Er erklärt die Nutzung.
+- Du kannst die Bar jederzeit besuchen (Button unten links).
+
+Mid-End:
+- Bartender gibt dir VOR dem ersten Besuch am Mid-Tisch: 2 Asse + 2 Zigaretten.
+- Danach normale Bar-Funktionen (Essen, Trinken kaufen).
+
+High-End:
+- KEIN Zugang zur Bar. Du musst vorher ausreichend essen/trinken.
+- Jack setzt sich neben dich. Er bietet dir in jeder Runde ein Bier an:
+  → „Ja“: Du trinkst (Alkohol +20%, Verdacht -10%, Bild verschwommen).
+  → „Nein“: Er durchsucht dich SOFORT (gleicher Mechanic wie oben, aber Safe-Bereich ist nur 1/4 so breit wie normal – fast unmöglich).
+
+================================================================================
+7.  ZUSATZ-MECHANIKEN (für mehr Würze)
+================================================================================
+
+A) JACKS BLICK (nur High-End)
+   - Jack dreht sich plötzlich zu dir um.
+   - Drücke innerhalb von 0,8 Sekunden die Taste „F“ (oder eine andere freie Taste).
+   - Schaffst du es nicht: +30% Verdacht.
+   - Schaffst du es: keine Auswirkung.
+
+================================================================================
+8.  SPIELABLAUF – TYPISCHE 15 MINUTEN (Beispiel)
+================================================================================
+
+Minute 0-3:    Low-End-Tisch. Sammle erste 2.000€. Kaufe einmal Suppe und Wasser.
+               Nutze die Lupe sparsam. Bar-Zwang nach 2 Runden.
+Minute 3-7:    Mid-End-Tisch. Von 2.000€ auf 5.000€. Achte auf die Verdachtsleiste.
+               Nutze Zigaretten nur bei niedrigem Verdacht. Trinke Bier bei >50% Verdacht.
+               Kaufe Silent Chip, falls nötig.
+Minute 7-12:   High-End-Tisch. Keine Bar mehr. Jetzt zählt jede Runde.
+               Maximal 2 Lupen. Halte Alkohol niedrig (sonst keine Items).
+               Lehne Jacks Bier ab, wenn du mutig bist – aber dann extrem schwerer Safe-Bereich.
+Minute 12-15:  Endspurt.
+
+================================================================================
+9.  UI & STEUERUNG (kurz)
+================================================================================
+
+Linke Bildschirmseite (ca. 1/5 Breite):
+   Oben: Kontostand, Hunger-Balken, Durst-Balken, Alkohol-Balken, Verdachtsbalken
+   Mitte: Items (Lupe, Bier, Asse, Zigaretten) mit Anzahl.
+   Unten: Button zum Wechseln zwischen Bar und Blackjack-Tisch.
+
+Blackjack-Ansicht:
+   Grüner Halbkreis (Tisch). Oben: Dealer-Karte & Deck.
+   Unten: Eigene Karten. Rechts 1 Bot (wechselnde Namen) (einfach: ziehen bis 14, 75% Wahrscheinlichkeit).
+
+Bar-Ansicht:
+   Unterer Bildschirmbereich. Rechts: vier Kategorien (Juan, Suppe, Wasser, Bier + Spezialangebote).
+
+Durchsuchung: Leertaste zum Stoppen des Streifens.
+
+Einstellungen (Overlay oben rechts): Spiel verlassen, Lautstärke Musik/SFX.
+
+================================================================================
+10. BALANCING-HINWEISE (für dich als Designer)
+================================================================================
+
+- Die 1/8 und 1/5 Durchsuchungsraten sorgen für etwa 3-4 Durchsuchungen pro Spiel.
+- Mit Schummel-Erhöhung (je +5%) kann es auch mal 5-6 werden – dann wird der Safe-Bereich extrem klein.
+- Die Preise in der Bar fressen etwa 15-20% deines Kapitals, wenn du regelmäßig isst/trinkst.
+  Das ist genau richtig, um Ressourcen-Management nötig zu machen.
+- Der Fluchtversuch ab 9.500€ gibt ein risikoreiches, aber lohnenswertes Alternativziel.
+
+================================================================================
+                            ENDE DES KONZEPTS
+================================================================================

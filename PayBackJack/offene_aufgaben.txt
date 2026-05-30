@@ -1,0 +1,251 @@
+================================================================================
+                    PAYBACKJACK – OFFENE AUFGABEN & SCHÄTZUNGEN
+================================================================================
+
+Dieses Dokument vergleicht den aktuellen Implementierungsstand des Projekts mit 
+dem überarbeiteten Spielkonzept (15-Minuten-Arcade) und listet alle noch offenen 
+Aufgaben auf. Jede Aufgabe ist geschätzt für einen einzelnen Entwickler (Netto-Arbeitsstunden).
+
+---
+
+================================================================================
+1. CURRENT STATUS: WAS IST BEREITS IMPLEMENTIERT?
+================================================================================
+- Grundstruktur (SPIEL-Klasse, 1920x1080 Auflösung).
+- Sidebar links mit Basis-Balken (Hunger, Durst, Alkohol) und 6 Inventarslots.
+- Blackjack-Grundregeln (Hit, Stand, Double Down, Punkteberechnung, Dealer zieht bis 17).
+- 1 einfacher Bot-Spieler (Max) am Tisch.
+- Einfache Bar-Szene mit Juan (Suppe, Wasser, Bier kaufen).
+- Basis-Items: Suppe (+40 Hunger), Wasser (+30 Durst), Bier (+20 Alkohol, +15 Durst),
+  Lupe (dekt Dealer-Karte auf mit 10 Runden Cooldown), Zigarette (erhöht Glücks-Bonus).
+- Cutscene-Klasse für Intro, Gewinn (bei >= 100.000€) und Verlust (bei <= 0€).
+- Audio-System (Hintergrundmusik für Tisch und Bar, Soundeffekte beim Austeilen, Kaufen etc.).
+
+---
+
+================================================================================
+2. OFFENE AUFGABEN & ZEITSCHÄTZUNGEN (KATEGORISIERT)
+================================================================================
+
+--------------------------------------------------------------------------------
+KATEGORIE A: CODE & SPIELLOGIK (PROGRAMMIERUNG)
+--------------------------------------------------------------------------------
+Beschreibung: Implementierung aller neuen Regeln, Zustände und Spielflüsse in Java.
+
+A.1) Tisch-Progression & Limits [4 Std.]
+     - Implementierung der drei Tische (Low-End, Mid-End, High-End).
+     - Sperrung/Freischaltung basierend auf Kontostand (0-2k, 2k-5k, 5k-10k).
+     - Tischspezifische Einsatzlimits (max. 200€ / 500€ / 1.000€).
+A.2) 15-Minuten-Zeitlimit [2 Std.]
+     - Globaler Timer (900 Sekunden), der im Hintergrund runterzählt.
+     - Anzeige der verbleibenden Zeit in der Sidebar.
+     - Game-Over-Trigger bei Ablauf der Zeit.
+A.3) Neues Ziel & Endbedingungen [2 Std.]
+     - Gewinnbedingung ändern: Erreichen von 10.000€ am High-End-Tisch (löst Cutscene aus).
+     - Game-Over anpassen: Kontostand < 0€ (vorher <= 0€).
+A.4) Suspicion-System (Verdacht) [6 Std.]
+     - Verdachtsbalken (0-100%) in Spielstand und Sidebar einbinden.
+     - Tischabhängiger Verdachtszuwachs (Low-End: unsichtbar/langsam; Mid-End: sichtbar;
+       High-End: sinkt nie unter 15%).
+     - Schummeln (Lupe, Zigarette) erhöht Verdacht direkt (+20%).
+A.5) Ressourcen-Effekte (Thresholds) [7 Std.]
+     - Hunger > 80%: -50€ pro Runde.
+     - Durst > 80%: +5% Verdacht pro Runde.
+     - Hunger/Durst > 90%: Einmalige Strafe von 5.000€.
+     - Alkohol-Effektstufen (Verschwommenheit, falsche Dealer-Anzeige, Input-Verzögerung,
+       Fehleingaben/Tastenvertauschung bei >90%).
+     - Verdachts-Effektstufen (Herzklopfen-Audio triggern, Muting anderer Sounds bei >90%).
+A.6) Neue Bar-Preise & Spezial-Items [4 Std.]
+     - Preise dynamisch an Tisch anpassen (z. B. Suppe 80€ an Low, 200€ an Mid).
+     - Schmutziges Wasser (Durst runter, +10% Verdacht).
+     - Verdorbene Suppe (Hunger runter, 30% Chance auf Nausea-Effekt: Karten für 2 Runden verschwommen).
+A.7) Durchsuchungs-Minigame [10 Std.]
+     - Logik für Durchsuchungs-Trigger (Mid-End: 1/8; High-End: 1/5; +5% pro Schummeln).
+     - Minigame-Zustand: Ein Strich wandert auf einer Leiste hin und her.
+     - Spacebar-Input abfangen und Position prüfen.
+     - Safe-Bereich-Logik (schrumpft nach jeder Durchsuchung um 20%).
+     - Reset-Logik bei Misserfolg (Geld auf 1.000€, Items weg).
+A.8) Scripted Events & Bartender-Tutorials [6 Std.]
+     - Low-End: Nach 2 Runden Zwangsgespräch mit Bartender (Nebenmann fliegt auf).
+     - Bartender schenkt dir 1 Lupe + 1 Bier.
+     - Mid-End: Vor dem ersten Spiel schenkt dir Bartender 2 Asse + 2 Zigaretten.
+     - High-End: Bar-Zugriff blockieren.
+A.9) Jack als Tisch-Gegner & Interaktionen [8 Std.]
+     - Jack-Logik am High-End-Tisch implementieren (sitzt neben dir).
+     - Jacks Bier-Angebot triggern:
+       - "Ja" -> Alkohol +20%, Verdacht -10%.
+       - "Nein" -> Sofortige Durchsuchung mit extrem kleinem Safe-Bereich (1/4 Breite).
+     - Jacks Blick (Quick-Time-Event): Jack dreht sich um -> innerhalb 0,8s Taste 'F' drücken,
+       sonst +30% Verdacht.
+A.10) Neues Item-Verhalten (Asse & Zigaretten) [6 Std.]
+      - Asse im Inventar: Nutzbarkeit als 3. Handkarte (Punkteberechnung anpassen).
+      - Zigaretten im Inventar: Erhöht den aktuellen Einsatz um 50%, bringt +20% Verdacht.
+        Bei Verdacht > 80% sofortiger Such-Trigger.
+
+>> ZWISCHENSUMME CODE & LOGIK: ca. 55 Arbeitsstunden
+
+--------------------------------------------------------------------------------
+KATEGORIE B: UI, GRAFIKEN & TEXTUREN (ART DESIGN)
+--------------------------------------------------------------------------------
+Beschreibung: Erstellung der visuellen Assets und Anpassung des Layouts.
+
+B.1) UI-Layout-Erweiterung [4 Std.]
+     - Verdachtsbalken visuell in der Sidebar platzieren (inkl. HSL-Farbwechsel rot/gelb).
+     - Timer-Anzeige (Uhr/Text) in der Sidebar hinzufügen.
+     - Anpassung der Slot-Grafiken für neue Gegenstände (Asse, schmutziges Wasser, etc.).
+B.2) Jack-Charakter-Sprites [5 Std.]
+     - Erstellung von Pixel-Art-Sprites für Jack (Kopf und Körper analog zu Juan).
+     - Sprites für Jack am Tisch (bietet Bier an, dreht sich um für Jacks Blick).
+B.3) Durchsuchungs-Minigame UI [4 Std.]
+     - Grafiken für die Leiste, den beweglichen Zeiger und den markierten Safe-Bereich.
+B.4) Spezial-Item-Icons [3 Std.]
+     - Icons für Schmutziges Wasser, Verdorbene Suppe, Ass-Karte.
+B.5) Blur-Shader / Nausea-Effekt [4 Std.]
+     - Grafischer Effekt für Betrunkenheit/Nausea (Verschwommenes Rendering der Karten
+       oder des gesamten Spielbereichs in Java2D).
+
+>> ZWISCHENSUMME GRAFIKEN & UI: ca. 20 Arbeitsstunden
+
+--------------------------------------------------------------------------------
+KATEGORIE C: SOUNDS & AUDIO (SFX)
+--------------------------------------------------------------------------------
+Beschreibung: Akquisition, Bearbeitung und technische Einbindung von Sounds.
+
+C.1) Herzklopfen-Effekt [3 Std.]
+     - Einbinden eines Herzklopfen-Loops, dessen Frequenz/Lautstärke mit der Suspicion-Leiste skaliert.
+C.2) Mute-Filter bei Panik [2 Std.]
+     - Dämpfen/Stummschalten von Musik und anderen SFX bei >90% Verdacht.
+C.3) Minigame & Event SFX [3 Std.]
+     - Sound-Feedback für das Durchsuchungs-Minigame (Tick-Geräusch, Erfolg-Ping, Alarm bei Fund).
+     - Warn-Sound für Jack's Blick (Quick-Time-Event).
+C.4) Einstellungs-Menü-Audio [2 Std.]
+     - Audio-Pegel-Steuerung im Einstellungs-Overlay (Musik- & SFX-Lautstärke verändern).
+
+>> ZWISCHENSUMME SOUND & AUDIO: ca. 10 Arbeitsstunden
+
+--------------------------------------------------------------------------------
+KATEGORIE D: ANIMATIONEN
+--------------------------------------------------------------------------------
+Beschreibung: Bewegungseffekte zur optischen Aufwertung (wird am Ende umgesetzt).
+
+D.1) Karten-Austeil-Animation [6 Std.]
+     - Karten fliegen sanft vom Stapel auf ihre Zielpositionen (Translation über Zeit).
+D.2) Chip-Schiebe-Animation [4 Std.]
+     - Visualisierung der Einsätze, Chips bewegen sich in die Tischmitte.
+D.3) Durchsuchungs-Strich-Animation [3 Std.]
+     - Flüssige Hin- und Herbewegung des Zeigers im Minigame.
+D.4) Jacks Blick-Animation [3 Std.]
+     - Jack dreht den Kopf ruckartig zum Spieler (visueller Indikator).
+
+>> ZWISCHENSUMME ANIMATIONEN: ca. 16 Arbeitsstunden
+
+---
+
+================================================================================
+3. GESAMTEINSCHÄTZUNG: KLASSISCH VS. MIT KI (ANTIGRAVITY-MODUS)
+================================================================================
+
+Hier ist der entscheidende Unterschied! Die 131 Stunden gelten für einen Entwickler,
+der ALLES selbst von Hand codieren und designen muss. 
+Da ich (deine KI) jedoch den gesamten Code für dich schreibe, ändert sich die 
+Zeiteinschätzung für dich massiv:
+
+Kategorie         | Klassisch (allein) | Mit Antigravity (KI schreibt den Code)
+------------------|--------------------|---------------------------------------
+Code & Logik      | 55 Stunden         | ~ 0 Stunden (Ich schreibe den Code in 10-20 Min)
+Grafik & UI       | 20 Stunden         | 2 - 5 Stunden (Du suchst/generierst Assets, ich binde sie ein)
+Sound & SFX       | 10 Stunden         | 1 - 2 Stunden (Du lädst WAVs herunter, ich code die Logik)
+Animationen       | 16 Stunden         | ~ 0 Stunden (Ich code die Bewegungen für dich)
+Testing & Tweaks  | 20 Stunden         | 2 - 4 Stunden (Gemeinsames Ausprobieren und Anpassen)
+------------------|--------------------|---------------------------------------
+GESAMT-AUFWAND    | ~ 131 Stunden      | ca. 5 - 11 STUNDEN FÜR DICH!
+
+================================================================================
+4. DEIN ZEITLICHER ABLAUF (SO SCHNELL GEHT ES JETZT)
+================================================================================
+
+Wenn wir das zusammen machen, sind wir in kürzester Zeit durch! 
+
+1. SCHRITT: Logik-Implementierung (~ 10-15 Minuten)
+   - Du sagst mir: "Implementiere Schritt X aus dem Spielkonzept".
+   - Ich schreibe und aktualisiere den Java-Code für dich (Tischprogression, Suspicion, Timer).
+   - Du compilierst und startest das Spiel zur Kontrolle.
+
+2. SCHRITT: Minigame & Mechaniken (~ 10-15 Minuten)
+   - Ich implementiere die Leertasten-Durchsuchungslogik, die Asse- & Zigarettenmechanik.
+
+3. SCHRITT: Assets & Polish (~ 1-2 Stunden für dich)
+   - Du besorgst oder generierst die neuen Grafiken (Jack-Sprite, neue Item-Bilder) und 
+     Sounds (Herzklopfen, Fehler-Audio).
+   - Ich binde sie für dich an den richtigen Stellen im Code ein.
+
+4. SCHRITT: Animationen & Endschliff (~ 10-15 Minuten)
+   - Ich animiere das Kartenausteilen und Chipsektoren flüssig im Java-Code.
+
+Fazit: Ja, für dich als Designer/Projektleiter reduziert sich die eigentliche
+Arbeit fast ausschließlich auf das kreative Begleiten, Asset-Bereitstellen und 
+Testen! Den Code liefere ich dir komplett mundgerecht.
+
+================================================================================
+5. ASSET-CHECKLISTE FÜR DEN SUPER-PROMPT (WAS MUSST DU VORBEREITEN?)
+================================================================================
+
+Damit ich im "Super-Prompt" das gesamte Spiel fehlerfrei programmieren kann, 
+solltest du die folgenden Assets in deinen Projektordnern ablegen. Verwende 
+bitte exakt diese Dateinamen und Pfade:
+
+--------------------------------------------------------------------------------
+A) GRAFIKEN & SPRITES (In Assets/Sprites/...)
+--------------------------------------------------------------------------------
+
+Hintergründe (in Assets/Sprites/Tisch/ bzw. Assets/Sprites/Bar/):
+[ ] Tisch-Hintergrund (Mid-End):   Assets/Sprites/Tisch/Background_Mid_640x360.png
+    -> (Auflösung: 640x360, Pixel-Art. Für den mittleren Tisch)
+[ ] Tisch-Hintergrund (High-End):  Assets/Sprites/Tisch/Background_High_640x360.png
+    -> (Auflösung: 640x360, Pixel-Art. Für den High-End-Tisch mit Jack)
+[ ] Bar-Hintergrund (Neu):         Assets/Sprites/Bar/Background_640x360.png
+    -> (Auflösung: 640x360. Falls du den bestehenden Bar-Hintergrund ersetzen willst)
+
+Gegner Jack Sprites (in Assets/Sprites/Bar/ oder Assets/Sprites/Tisch/):
+[ ] Jacks Körper:                  Assets/Sprites/Bar/JackBody_40x80.png
+    -> (Pixel-Art Körper von Jack, der am Tisch neben dir sitzt, ca. 40x80 oder 80x160 px)
+[ ] Jacks Kopf:                    Assets/Sprites/Bar/JackHead_26x26.png
+    -> (Kopf von Jack, ca. 26x26 oder 52x52 px)
+[ ] Jacks Blick (Warnindikator):   Assets/Sprites/Tisch/JackWarnung.png (Optional)
+    -> (Ein kleines Warnsymbol/Ausrufezeichen für das Quick-Time-Event 'F')
+[ ] Jacks Blick (Bilder-Sequenz):   Assets/Sprites/Tisch/JacksBlick/zoom_01.png bis zoom_12.png
+    -> (Die von dir mit KI generierte und verpixelte Zoom-/Schwenk-Animation zu Jack.
+        Erstelle einen neuen Ordner 'JacksBlick' und lege die nummerierten PNGs dort ab.
+        Am Ende der Sequenz verbleiben wir auf dem letzten Frame als Standbild!)
+
+Spezial-Items Icons (in Assets/Sprites/Items/):
+[ ] Ass-Karte (Icon):              Assets/Sprites/Items/Ass_20x20.png
+    -> (20x20 Pixel-Art für das Ass-Schummel-Item im Inventar/Sidebar)
+[ ] Schmutziges Wasser (Icon):     Assets/Sprites/Items/SchmutzigesWasser_20x20.png
+    -> (20x20 Pixel-Art. Alternativ verwenden wir das normale Wasser-Icon)
+[ ] Verdorbene Suppe (Icon):       Assets/Sprites/Items/VerdorbeneSuppe_20x20.png
+    -> (20x20 Pixel-Art. Alternativ verwenden wir das normale Suppen-Icon)
+
+*Hinweis zum Durchsuchungs-Minigame:*
+Grafiken für die Durchsuchungsleiste, den Schieberegler und die Safe-Zone brauchst du NICHT zu zeichnen! Diese erstelle ich direkt aus dem Java-Code heraus mit farbigen Rechtecken (RechteckE). Das spart dir Arbeit und Credits!
+
+--------------------------------------------------------------------------------
+B) SOUNDS & AUDIO (In Assets/Sounds/SFX/... im WAV-Format)
+--------------------------------------------------------------------------------
+
+[ ] Herzklopfen-Effekt:           Assets/Sounds/SFX/sfx_heartbeat.wav
+    -> (Ein kurzer, loopbarer Herzschlag-Sound für hohe Suspicion)
+[ ] Durchsuchung Bestanden:        Assets/Sounds/SFX/sfx_search_success.wav
+    -> (Ein positiver Soundeffekt für den erfolgreichen Quick-Time-Event)
+[ ] Durchsuchung Fehlgeschlagen:   Assets/Sounds/SFX/sfx_search_fail.wav
+    -> (Ein Alarm- oder Entdeckungs-Sound, wenn Jack dich erwischt)
+[ ] Jack's Blick Warnsound:        Assets/Sounds/SFX/sfx_warning.wav
+    -> (Ein kurzes Zischen oder Alarm-Geräusch für das QTE 'F')
+[ ] Essen/Trinken-Sound:           Assets/Sounds/SFX/sfx_eat.wav (Optional)
+    -> (Ein Schmatz- oder Trinkgeräusch. Alternativ nutzen wir den sfx_buy-Sound)
+
+Sobald du diese Dateien in die entsprechenden Ordner gelegt hast, kopierst du 
+einfach das gesamte Spielkonzept und schreibst mir: 
+"Ich habe alle Assets bereitgelegt. Bitte implementiere jetzt das gesamte Spielkonzept 
+auf einmal!" – und ich programmiere dir das fertige Spiel!
+================================================================================
