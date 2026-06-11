@@ -184,7 +184,6 @@ Einstellungen (Overlay oben rechts): Spiel verlassen, Lautstärke Musik/SFX.
 - Mit Schummel-Erhöhung (je +5%) kann es auch mal 5-6 werden – dann wird der Safe-Bereich extrem klein.
 - Die Preise in der Bar fressen etwa 15-20% deines Kapitals, wenn du regelmäßig isst/trinkst.
   Das ist genau richtig, um Ressourcen-Management nötig zu machen.
-- Der Fluchtversuch ab 9.500€ gibt ein risikoreiches, aber lohnenswertes Alternativziel.
 
 ================================================================================
                             ENDE DES KONZEPTS
