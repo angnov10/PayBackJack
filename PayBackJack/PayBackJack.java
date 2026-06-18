@@ -64,7 +64,7 @@ public class PayBackJack extends SPIEL {
     
     // SOUNDS
     private Sound musikTisch, musikBar;
-    private Sound sfxCardDeal, sfxCardFlip, sfxCollapse, sfxError, sfxHover, sfxBuy, sfxMagnifier, sfxSmoke;
+    private Sound sfxCardDeal, sfxCardFlip, sfxCollapse, sfxError, sfxHover, sfxBuy, sfxMagnifier, sfxSmoke, sfxEat;
     private Sound sfxHeartbeat, sfxSearchSuccess, sfxSearchFail, sfxWarning;
     
     static {
@@ -84,6 +84,7 @@ public class PayBackJack extends SPIEL {
         sfxError = new Sound("../Assets/Sounds/SFX/sfx_error");
         sfxHover = new Sound("../Assets/Sounds/SFX/sfx_hover");
         sfxBuy = new Sound("../Assets/Sounds/SFX/sfx_buy");
+        sfxEat = new Sound("../Assets/Sounds/SFX/sfx_eat.wav");
         sfxMagnifier = new Sound("../Assets/Sounds/SFX/sfx_magnifier");
         sfxSmoke = new Sound("../Assets/Sounds/SFX/sfx_smoke.wav");
         sfxHeartbeat = new Sound("../Assets/Sounds/SFX/sfx_heartbeat.wav");
@@ -378,7 +379,7 @@ public class PayBackJack extends SPIEL {
                     bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
                     spielstand.setGeschummelt(true);
                 } else {
-                    sfxBuy.play(); 
+                    sfxEat.play(); 
                 }
                 
                 sidebar.aktualisieren(spielstand);
