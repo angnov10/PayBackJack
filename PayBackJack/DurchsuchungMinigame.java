@@ -1,4 +1,5 @@
 import ea.edu.*;
+import ea.Sound;
 
 public class DurchsuchungMinigame {
     
@@ -14,6 +15,8 @@ public class DurchsuchungMinigame {
     private int safeBreiteProzent; // 0 to 100
     private int safePosProzent; // 0 to 100
     private int schwierigkeitCounter; // wie oft schon durchsucht
+    
+    private Sound sfxStart;
     
     private Thread animationThread;
     
@@ -54,6 +57,8 @@ public class DurchsuchungMinigame {
         
         FontHelper.anwenden(statusText);
         
+        sfxStart = new Sound("../Assets/Sounds/SFX/sfx_search_start.wav");
+        
         aktiv = false;
         schwierigkeitCounter = 0;
     }
@@ -87,6 +92,8 @@ public class DurchsuchungMinigame {
         zeiger.sichtbarSetzen(true);
         statusText.sichtbarSetzen(true);
         warnungBild.sichtbarSetzen(true);
+        
+        sfxStart.play();
         
         animationThread = new Thread(() -> {
             boolean right = true;
