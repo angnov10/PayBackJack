@@ -418,47 +418,85 @@ public class PayBackJack extends SPIEL {
         // === INVENTAR NUTZEN ===
         if (("blackjack".equals(aktuelleSzene) || "bar".equals(aktuelleSzene)) && taste >= Taste._3 && taste <= Taste._8) {
             int slot = taste - Taste._3; 
-            String genutzt = spielstand.itemNutzen(slot);
-            if (genutzt != null) {
-                boolean zuBetrunken = spielstand.getAlkohol() >= 90;
-                if (genutzt.equals("Zigarette")) {
-                    if (zuBetrunken) {
-                        bjStatus.inhaltSetzen("Zu betrunken! Zigarette wirkungslos.");
-                        sfxError.play();
-                    } else {
-                        sfxSmoke.play();
-                        spielstand.setGeschummelt(true);
-                        if (spielstand.getVerdacht() > 80 && "blackjack".equals(aktuelleSzene)) {
-                            durchsuchung.starten(false);
-                        }
-                    }
-                } else if (genutzt.equals("Lupe") && "blackjack".equals(aktuelleSzene)) {
-                    if (zuBetrunken) {
-                        bjStatus.inhaltSetzen("Zu betrunken zum Schummeln!");
-                        sfxError.play();
-                    } else {
-                        lupeBenuetzen();
-                    }
-                } else if (genutzt.equals("Ass") && "blackjack".equals(aktuelleSzene) && rundeLaeuft) {
-                    if (zuBetrunken) {
-                        bjStatus.inhaltSetzen("Zu betrunken! Ass verloren.");
-                        sfxError.play();
-                    } else {
-                        spielerHand.karteHinzufuegen(new Karte("Herz", "Ass", 11));
-                        sfxCardDeal.play();
-                        spielerHand.alleZentriertAnzeigen(960, 768, false);
-                        bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
-                        spielstand.setGeschummelt(true);
-                    }
-                } else {
-                    sfxEat.play(); 
+            nutzeItem(slot);
+        }
+    }
+    
+    @Override
+    public void klickReagieren(int x, int y) {
+        if ("intro_loading".equals(aktuelleSzene)) return;
+        
+        // Inventar Klicks (Sidebar)
+        if (x < 600) {
+            if ("blackjack".equals(aktuelleSzene) || "bar".equals(aktuelleSzene)) {
+                int slot = sidebar.checkInventarKlick(x, y);
+                if (slot >= 0) {
+                    nutzeItem(slot);
                 }
-                
-                sidebar.aktualisieren(spielstand);
-                if (aktuelleSzene.equals("bar")) barSzene.aktualisieren(spielstand);
-                if (spielerHand != null) bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
-                pruefeSpielstatus();
             }
+        } 
+        // Bar Shop Klicks
+        else if ("bar".equals(aktuelleSzene) && x >= 600) {
+            String clickedItem = barSzene.checkKaufKlick(x, y);
+            if (clickedItem != null) {
+                int preis = barSzene.getPreis(clickedItem, spielstand.getTischLevel());
+                if (clickedItem.equals("Lupe")) preis = 10000;
+                if (clickedItem.equals("Zigarette")) preis = 500;
+                
+                if (spielstand.kaufen(clickedItem, preis)) {
+                    sfxBuy.play();
+                    barSzene.setFeedback(clickedItem + " gekauft!");
+                } else {
+                    sfxError.play();
+                    barSzene.setFeedback("Zu teuer oder Inventar voll!");
+                }
+                sidebar.aktualisieren(spielstand);
+                barSzene.aktualisieren(spielstand);
+            }
+        }
+    }
+    
+    private void nutzeItem(int slot) {
+        String genutzt = spielstand.itemNutzen(slot);
+        if (genutzt != null) {
+            boolean zuBetrunken = spielstand.getAlkohol() >= 90;
+            if (genutzt.equals("Zigarette")) {
+                if (zuBetrunken) {
+                    bjStatus.inhaltSetzen("Zu betrunken! Zigarette wirkungslos.");
+                    sfxError.play();
+                } else {
+                    sfxSmoke.play();
+                    spielstand.setGeschummelt(true);
+                    if (spielstand.getVerdacht() > 80 && "blackjack".equals(aktuelleSzene)) {
+                        durchsuchung.starten(false);
+                    }
+                }
+            } else if (genutzt.equals("Lupe") && "blackjack".equals(aktuelleSzene)) {
+                if (zuBetrunken) {
+                    bjStatus.inhaltSetzen("Zu betrunken zum Schummeln!");
+                    sfxError.play();
+                } else {
+                    lupeBenuetzen();
+                }
+            } else if (genutzt.equals("Ass") && "blackjack".equals(aktuelleSzene) && rundeLaeuft) {
+                if (zuBetrunken) {
+                    bjStatus.inhaltSetzen("Zu betrunken! Ass verloren.");
+                    sfxError.play();
+                } else {
+                    spielerHand.karteHinzufuegen(new Karte("Herz", "Ass", 11));
+                    sfxCardDeal.play();
+                    spielerHand.alleZentriertAnzeigen(960, 768, false);
+                    bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+                    spielstand.setGeschummelt(true);
+                }
+            } else {
+                sfxEat.play(); 
+            }
+            
+            sidebar.aktualisieren(spielstand);
+            if (aktuelleSzene.equals("bar")) barSzene.aktualisieren(spielstand);
+            if (spielerHand != null) bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+            pruefeSpielstatus();
         }
     }
     

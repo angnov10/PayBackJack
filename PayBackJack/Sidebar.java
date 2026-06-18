@@ -303,4 +303,23 @@ public class Sidebar {
             btnBar.farbeSetzen("Gelb");
         }
     }
+    
+    // Gibt den Index des geklickten Slots zurück (0-5) oder -1 falls nichts getroffen wurde
+    public int checkInventarKlick(int x, int y) {
+        int itemsStartX = SIDEBAR_X + 60;
+        int itemsStartY = 450;
+        
+        for (int i = 0; i < 6; i++) {
+            int col = i % 2;
+            int row = i / 2;
+            int slotX = itemsStartX + (col * 180) + 10;
+            int slotY = itemsStartY + 40 + (row * 100);
+            
+            // Hitbox pro Slot: x: slotX bis slotX+100, y: slotY bis slotY+100
+            if (x >= slotX && x <= slotX + 100 && y >= slotY && y <= slotY + 100) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
