@@ -28,8 +28,8 @@ public class Spielstand {
     public Spielstand() {
         geld = 1000;
         einsatz = 50;
-        hunger = 80;
-        durst = 80;
+        hunger = 90;
+        durst = 90;
         alkohol = 0;
         verdacht = 0;
         zeitVerbleibend = 900; // 15 Minuten
@@ -108,8 +108,8 @@ public class Spielstand {
             strafeErhalten = true;
         }
         
-        hunger -= 8;  
-        durst -= 10;  
+        hunger -= 6;  // War 8 – jetzt mehr Spielraum
+        durst -= 8;   // War 10 – jetzt mehr Spielraum
         if (alkohol > 0) alkohol -= 2;
         if (lupeAbklingzeit > 0) lupeAbklingzeit--;
         

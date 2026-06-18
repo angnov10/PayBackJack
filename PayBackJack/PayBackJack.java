@@ -67,6 +67,16 @@ public class PayBackJack extends SPIEL {
     private Sound sfxCardDeal, sfxCardFlip, sfxCollapse, sfxError, sfxHover, sfxBuy, sfxMagnifier, sfxSmoke, sfxEat;
     private Sound sfxHeartbeat, sfxSearchSuccess, sfxSearchFail, sfxWarning;
     
+    // Alkohol Effekt Overlay
+    private RechteckE alkoholOverlay;
+    // Jack's Blick Animation (12 Frames)
+    private BildE[] jacksBlickFrames;
+    private Thread jacksBlickThread;
+    // Musik Mute bei Panik
+    private boolean musikGedaempft;
+    // High-End Lupe Counter (max 2x)
+    private int highEndLupeUses;
+    
     static {
         System.setProperty("sun.java2d.uiScale", "0.85");
     }
@@ -159,7 +169,7 @@ public class PayBackJack extends SPIEL {
         jackDialog.sichtbarSetzen(false);
         
         debugMenuAktiv = false;
-        debugLabel = new TextE("DEBUG [M]: [X] Mid-Tisch | [C] High-Tisch | [V] Win | [B] Lose");
+        debugLabel = new TextE("DEBUG [M]: [X] Mid | [C] High | [V] Win | [B] Lose | [A] +Alkohol");
         debugLabel.positionSetzen(20, 1040);
         debugLabel.farbeSetzen("Gelb");
         debugLabel.sichtbarSetzen(false);
@@ -176,6 +186,25 @@ public class PayBackJack extends SPIEL {
         dealerHand = new Hand();
         
         sidebar = new Sidebar();
+        
+        // === ALKOHOL OVERLAY (nach Sidebar, damit er über dem Tisch liegt) ===
+        alkoholOverlay = new RechteckE();
+        alkoholOverlay.breiteSetzen(1320); // Spielbereich: 600..1920
+        alkoholOverlay.hoeheSetzen(1080);
+        alkoholOverlay.positionSetzen(600, 0);
+        alkoholOverlay.farbeSetzen("Blau");
+        alkoholOverlay.sichtbarSetzen(false);
+        
+        // === JACK'S BLICK ANIMATION (12 Frames) ===
+        jacksBlickFrames = new BildE[12];
+        for (int i = 0; i < 12; i++) {
+            String frameNr = String.format("%02d", i + 1);
+            jacksBlickFrames[i] = new BildE(0, 0, "../Assets/Sprites/Tisch/JacksBlick/zoom_" + frameNr + ".png");
+            jacksBlickFrames[i].sichtbarSetzen(false);
+        }
+        musikGedaempft = false;
+        highEndLupeUses = 0;
+        
         aktuelleSzene = "cutscene";
         cutscene.ladeIntro();
         cutscene.anzeigen();
@@ -208,15 +237,32 @@ public class PayBackJack extends SPIEL {
                 if (qteAktiv && (now - qteStartTime > 800)) {
                     qteAktiv = false;
                     jackWarnung.sichtbarSetzen(false);
+                    stoppeJacksBlickAnimation();
                     spielstand.verdachtAendern(30);
                     bjStatus.inhaltSetzen("Jack hat dich beobachtet! +30% Verdacht");
                     sfxError.play();
                     sidebar.aktualisieren(spielstand);
                 }
                 
-                // Herzklopfen & Audio
-                if (spielstand.getVerdacht() > 60 && Math.random() < 0.02) {
-                    sfxHeartbeat.play(); // Ab und zu Herzschlag
+                // Herzklopfen - Frequenz skaliert mit Verdacht
+                int verd = spielstand.getVerdacht();
+                double heartbeatChance = verd >= 90 ? 0.08 : (verd >= 60 ? 0.04 : 0);
+                if (heartbeatChance > 0 && Math.random() < heartbeatChance) {
+                    sfxHeartbeat.play();
+                }
+                
+                // Alkohol Overlay Update (alle 50ms)
+                aktualisiereAlkoholEffekte();
+                
+                // Mute bei Panik (Verdacht >= 90%)
+                if (verd >= 90 && !musikGedaempft && !"cutscene".equals(aktuelleSzene)) {
+                    musikGedaempft = true;
+                    musikTisch.pause();
+                    musikBar.pause();
+                } else if (verd < 90 && musikGedaempft) {
+                    musikGedaempft = false;
+                    if ("blackjack".equals(aktuelleSzene)) musikTisch.unpause();
+                    else if ("bar".equals(aktuelleSzene)) musikBar.unpause();
                 }
                 
                 try { Thread.sleep(50); } catch(Exception e) {}
@@ -229,6 +275,9 @@ public class PayBackJack extends SPIEL {
         int level = spielstand.getTischLevel();
         if (level != aktuellerTischLevel) {
             aktuellerTischLevel = level;
+            
+            // High-End Lupe Counter beim Eintritt zurücksetzen
+            if (level == 2) highEndLupeUses = 0;
             
             // Alten Hintergrund verstecken
             if (tischHintergrund != null) tischHintergrund.sichtbarSetzen(false);
@@ -287,6 +336,13 @@ public class PayBackJack extends SPIEL {
             if (taste == Taste.B) {
                 spielstand.setGeld(-1);
                 pruefeSpielstatus();
+                return;
+            }
+            if (taste == Taste.A) {
+                spielstand.alkoholAendern(50);
+                aktualisiereAlkoholEffekte();
+                sidebar.aktualisieren(spielstand);
+                if (bjStatus != null) bjStatus.inhaltSetzen("DEBUG: Alkohol jetzt " + spielstand.getAlkohol() + "%");
                 return;
             }
         }
@@ -364,20 +420,36 @@ public class PayBackJack extends SPIEL {
             int slot = taste - Taste._3; 
             String genutzt = spielstand.itemNutzen(slot);
             if (genutzt != null) {
+                boolean zuBetrunken = spielstand.getAlkohol() >= 90;
                 if (genutzt.equals("Zigarette")) {
-                    sfxSmoke.play();
-                    spielstand.setGeschummelt(true);
-                    if (spielstand.getVerdacht() > 80 && "blackjack".equals(aktuelleSzene)) {
-                        durchsuchung.starten(false);
+                    if (zuBetrunken) {
+                        bjStatus.inhaltSetzen("Zu betrunken! Zigarette wirkungslos.");
+                        sfxError.play();
+                    } else {
+                        sfxSmoke.play();
+                        spielstand.setGeschummelt(true);
+                        if (spielstand.getVerdacht() > 80 && "blackjack".equals(aktuelleSzene)) {
+                            durchsuchung.starten(false);
+                        }
                     }
                 } else if (genutzt.equals("Lupe") && "blackjack".equals(aktuelleSzene)) {
-                    lupeBenuetzen();
+                    if (zuBetrunken) {
+                        bjStatus.inhaltSetzen("Zu betrunken zum Schummeln!");
+                        sfxError.play();
+                    } else {
+                        lupeBenuetzen();
+                    }
                 } else if (genutzt.equals("Ass") && "blackjack".equals(aktuelleSzene) && rundeLaeuft) {
-                    spielerHand.karteHinzufuegen(new Karte("Herz", "Ass", 11));
-                    sfxCardDeal.play();
-                    spielerHand.alleZentriertAnzeigen(960, 768, false);
-                    bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
-                    spielstand.setGeschummelt(true);
+                    if (zuBetrunken) {
+                        bjStatus.inhaltSetzen("Zu betrunken! Ass verloren.");
+                        sfxError.play();
+                    } else {
+                        spielerHand.karteHinzufuegen(new Karte("Herz", "Ass", 11));
+                        sfxCardDeal.play();
+                        spielerHand.alleZentriertAnzeigen(960, 768, false);
+                        bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+                        spielstand.setGeschummelt(true);
+                    }
                 } else {
                     sfxEat.play(); 
                 }
@@ -448,13 +520,16 @@ public class PayBackJack extends SPIEL {
             if (taste == Taste.F) {
                 qteAktiv = false;
                 jackWarnung.sichtbarSetzen(false);
+                stoppeJacksBlickAnimation();
                 bjStatus.inhaltSetzen("Jack Blick abgewehrt.");
             } else {
                 qteAktiv = false;
                 jackWarnung.sichtbarSetzen(false);
+                stoppeJacksBlickAnimation();
                 spielstand.verdachtAendern(30);
                 bjStatus.inhaltSetzen("Jack hat dich beobachtet! +30% Verdacht");
             }
+            sidebar.aktualisieren(spielstand);
             return;
         }
         
@@ -503,6 +578,13 @@ public class PayBackJack extends SPIEL {
         }
         
         if (rundeLaeuft) {
+            // Alkohol >= 90%: Zufällige Fehleingaben (Hit/Stand vertauscht)
+            if (spielstand.getAlkohol() >= 90 && (taste == Taste.H || taste == Taste.S) && Math.random() < 0.3) {
+                bjStatus.inhaltSetzen("Zu betrunken! Kontrolle verloren!");
+                sfxError.play();
+                if (taste == Taste.H) { stand(); return; }
+                if (taste == Taste.S) { hit(); return; }
+            }
             if (taste == Taste.H) hit();
             if (taste == Taste.S) stand();
             if (taste == Taste.D && spielerHand.anzahlKarten() == 2) doubleDown();
@@ -513,6 +595,7 @@ public class PayBackJack extends SPIEL {
                 qteAktiv = true;
                 qteStartTime = System.currentTimeMillis();
                 jackWarnung.sichtbarSetzen(true);
+                starteJacksBlickAnimation();
                 sfxWarning.play();
             }
         } else {
@@ -665,6 +748,15 @@ public class PayBackJack extends SPIEL {
             dealerKarteSichtbar = true;
             dealerHand.positionAnzeigen(714, 78, false);
             sidebar.aktualisieren(spielstand);
+            
+            // High-End: max 2x Lupe, danach automatische Durchsuchung
+            if (spielstand.getTischLevel() == 2) {
+                highEndLupeUses++;
+                if (highEndLupeUses >= 2) {
+                    bjStatus.inhaltSetzen("Jack reicht's! Sofortige Durchsuchung!");
+                    durchsuchung.starten(false);
+                }
+            }
         }
     }
     
@@ -822,5 +914,62 @@ public class PayBackJack extends SPIEL {
         if (spielerHand != null) spielerHand.alleOptischVerstecken();
         if (dealerHand != null) dealerHand.alleOptischVerstecken();
         if (bot1 != null && bot1.getHand() != null) bot1.getHand().alleOptischVerstecken();
+    }
+    
+    /**
+     * Aktualisiert den Alkohol-Overlay-Effekt im Spielbereich.
+     * 30-60%: Blau (leicht), 60-90%: Lila (mittel), 90-100%: Rot (stark, blockt Items).
+     */
+    private void aktualisiereAlkoholEffekte() {
+        if (alkoholOverlay == null) return;
+        int alk = spielstand.getAlkohol();
+        if (alk >= 90) {
+            alkoholOverlay.farbeSetzen("Rot");
+            alkoholOverlay.sichtbarSetzen(true);
+        } else if (alk >= 60) {
+            alkoholOverlay.farbeSetzen("Lila");
+            alkoholOverlay.sichtbarSetzen(true);
+        } else if (alk >= 30) {
+            alkoholOverlay.farbeSetzen("Blau");
+            alkoholOverlay.sichtbarSetzen(true);
+        } else {
+            alkoholOverlay.sichtbarSetzen(false);
+        }
+    }
+    
+    /**
+     * Startet die Jack's-Blick-Sequenz (12 Frames in ~0.8s).
+     * Frames sind Platzhalter bis echte Bilder bereitgelegt werden.
+     */
+    private void starteJacksBlickAnimation() {
+        stoppeJacksBlickAnimation();
+        if (jacksBlickFrames == null) return;
+        jacksBlickThread = new Thread(() -> {
+            try {
+                for (int i = 0; i < 12; i++) {
+                    if (i > 0 && jacksBlickFrames[i-1] != null)
+                        jacksBlickFrames[i-1].sichtbarSetzen(false);
+                    if (jacksBlickFrames[i] != null)
+                        jacksBlickFrames[i].sichtbarSetzen(true);
+                    Thread.sleep(66); // 12 Frames x 66ms = ~0.8s
+                }
+            } catch (InterruptedException e) {
+                // Thread gestoppt - normal
+            }
+        });
+        jacksBlickThread.setDaemon(true);
+        jacksBlickThread.start();
+    }
+    
+    /**
+     * Stoppt die Jack's-Blick-Animation und versteckt alle Frames.
+     */
+    private void stoppeJacksBlickAnimation() {
+        if (jacksBlickThread != null) jacksBlickThread.interrupt();
+        if (jacksBlickFrames != null) {
+            for (BildE f : jacksBlickFrames) {
+                if (f != null) f.sichtbarSetzen(false);
+            }
+        }
     }
 }
