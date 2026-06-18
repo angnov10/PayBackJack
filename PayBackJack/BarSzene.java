@@ -15,6 +15,9 @@ public class BarSzene {
     private TextE juanName;
     private TextE juanDialog;
     
+    // Menü Title
+    private TextE menuTitle;
+    
     // Regal & Items (Grafisch)
     private BildE iconSuppe, iconWasser, iconBier, iconSchmutzWasser, iconVerdorbeneSuppe, iconLupe, iconZigarette;
     private TextE preisSuppe, preisWasser, preisBier, preisSchmutzWasser, preisVerdorbeneSuppe, preisLupe, preisZigarette;
