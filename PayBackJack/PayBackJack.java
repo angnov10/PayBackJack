@@ -4,15 +4,7 @@ import ea.Taste;
 
 /**
  * PayBackJack - Das Hauptspiel.
- * Verbindet alle Szenen, die Sidebar und den Spielstand.
- * 
- * 1920x1080 Auflösung.
- * Links: Sidebar (350px) | Rechts: Spielszene
- * 
- * Szenen:   [1] Blackjack | [2] Bar
- * Spielen:  [H] Hit | [S] Stand | [D] Double | [L] Lupe
- * Einsatz:  [Pfeiltasten] | [LEERTASTE] Starten
- * Bar:      [3] Suppe | [4] Wasser | [5] Bier | [6] Lupe | [7] Zigarette
+ * 15-Minuten Arcade-Modus Umsetzung.
  */
 public class PayBackJack extends SPIEL {
     
@@ -28,9 +20,10 @@ public class PayBackJack extends SPIEL {
     // Szenen-Objekte
     private BarSzene barSzene;
     private CutsceneSzene cutscene;
+    private DurchsuchungMinigame durchsuchung;
     
     // Blackjack-Tisch Elemente
-    private BildE tischHintergrund;
+    private BildE tischHintergrundLow, tischHintergrundMid, tischHintergrundHigh, tischHintergrund;
     private BildE anleitung;
     private TextE bjStatus;
     private TextE bjSpielerLabel;
@@ -42,20 +35,38 @@ public class PayBackJack extends SPIEL {
     private Kartenstapel deck;
     private Hand spielerHand;
     private Hand dealerHand;
-    private BotSpieler bot1, bot2, bot3;
-    private TextE bot1Label, bot2Label, bot3Label;
+    private BotSpieler bot1;
+    private TextE bot1Label;
     
     private boolean rundeLaeuft;
     private boolean setzPhase;
-    private boolean dealerKarteSichtbar; // Lupe-Effekt
+    private boolean dealerKarteSichtbar; 
+    private boolean wartetAufRundeStart;
+    private int aktuellerTischLevel = -1;
     
-    // SOUNDS & MUSIK
+    // Jack High-End Logik
+    private BildE jackBody, jackHead, jackWarnung;
+    private TextE jackDialog;
+    private boolean jackBietetBier;
+    private boolean qteAktiv;
+    private long qteStartTime;
+    
+    // Tutorials
+    private boolean tutorialLowGesehen;
+    private boolean tutorialMidGesehen;
+    
+    // Threads
+    private Thread gameLoopThread;
+    
+    // Debug Menu
+    private boolean debugMenuAktiv;
+    private TextE debugLabel;
+    
+    // SOUNDS
     private Sound musikTisch, musikBar;
     private Sound sfxCardDeal, sfxCardFlip, sfxCollapse, sfxError, sfxHover, sfxBuy, sfxMagnifier, sfxSmoke;
+    private Sound sfxHeartbeat, sfxSearchSuccess, sfxSearchFail, sfxWarning;
     
-    private static final int BJ_X = 380; // Start rechts von Sidebar
-    
-    // Setzt die Skalierung des Fensters fuer MacBooks herab, ohne die internen 1920x1080 Koordinaten zu aendern
     static {
         System.setProperty("sun.java2d.uiScale", "0.85");
     }
@@ -64,10 +75,9 @@ public class PayBackJack extends SPIEL {
         super(1920, 1080, false, false, true);
         aktuelleSzene = "intro_loading";
         
-        // --- SOUNDS INITIALISIEREN ---
+        // --- SOUNDS ---
         musikTisch = new Sound("../Assets/Sounds/SFX/music_table.wav");
         musikBar = new Sound("../Assets/Sounds/SFX/music_bar.wav");
-        
         sfxCardDeal = new Sound("../Assets/Sounds/SFX/sfx_card_deal.wav");
         sfxCardFlip = new Sound("../Assets/Sounds/SFX/sfx_card_flip");
         sfxCollapse = new Sound("../Assets/Sounds/SFX/sfx_collapse");
@@ -76,8 +86,11 @@ public class PayBackJack extends SPIEL {
         sfxBuy = new Sound("../Assets/Sounds/SFX/sfx_buy");
         sfxMagnifier = new Sound("../Assets/Sounds/SFX/sfx_magnifier");
         sfxSmoke = new Sound("../Assets/Sounds/SFX/sfx_smoke.wav");
+        sfxHeartbeat = new Sound("../Assets/Sounds/SFX/sfx_heartbeat.wav");
+        sfxSearchSuccess = new Sound("../Assets/Sounds/SFX/sfx_search_success.wav");
+        sfxSearchFail = new Sound("../Assets/Sounds/SFX/sfx_search_fail.wav");
+        sfxWarning = new Sound("../Assets/Sounds/SFX/sfx_warning.wav");
         
-        // Musik im Hintergrund starten und sofort pausieren
         musikTisch.loop();
         musikTisch.pause();
         musikBar.loop();
@@ -86,10 +99,16 @@ public class PayBackJack extends SPIEL {
         spielstand = new Spielstand();
         barSzene = new BarSzene();
         cutscene = new CutsceneSzene();
+        durchsuchung = new DurchsuchungMinigame();
         
         // === BLACKJACK TISCH AUFBAUEN ===
-        tischHintergrund = new BildE(0, 0, "../Assets/Sprites/Tisch/Background_640x360.png");
-        tischHintergrund.sichtbarSetzen(false);
+        tischHintergrundLow = new BildE(0, 0, "../Assets/Sprites/Tisch/Background_640x360.png");
+        tischHintergrundLow.sichtbarSetzen(false);
+        tischHintergrundMid = new BildE(0, 0, "../Assets/Sprites/Tisch/Background_Mid_640x360.png");
+        tischHintergrundMid.sichtbarSetzen(false);
+        tischHintergrundHigh = new BildE(0, 0, "../Assets/Sprites/Tisch/Background_High_640x360.png");
+        tischHintergrundHigh.sichtbarSetzen(false);
+        tischHintergrund = tischHintergrundLow;
         
         bjStatus = new TextE("");
         bjStatus.mittelpunktSetzen(960, 480);
@@ -116,53 +135,165 @@ public class PayBackJack extends SPIEL {
         bjSpielerLabel.sichtbarSetzen(false);
         
         bjSpielerPunkte = new TextE("Punkte: 0");
-        bjSpielerPunkte.mittelpunktSetzen(960, 710); // Mittig ueber Karten
+        bjSpielerPunkte.mittelpunktSetzen(960, 710); 
         bjSpielerPunkte.farbeSetzen("Weiß");
         bjSpielerPunkte.sichtbarSetzen(false);
         
-        // Bot-Spieler (Nur einer laut User)
         bot1 = new BotSpieler("Max");
-        bot2 = null; // Deaktiviert
-        bot3 = null; // Deaktiviert
-        
         bot1Label = new TextE("Max");
         bot1Label.positionSetzen(1428, 500);
         bot1Label.farbeSetzen("Weiß");
         bot1Label.sichtbarSetzen(false);
         
-        bot2Label = null;
-        bot3Label = null;
+        // Jack Sprites
+        jackBody = new BildE(400, 300, "../Assets/Sprites/Bar/JackBody_40x80.png");
+        jackBody.sichtbarSetzen(false);
+        jackHead = new BildE(410, 274, "../Assets/Sprites/Bar/JackHead_26x26.png");
+        jackHead.sichtbarSetzen(false);
+        jackWarnung = new BildE(410, 240, "../Assets/Sprites/Tisch/JackWarnung.png");
+        jackWarnung.sichtbarSetzen(false);
+        jackDialog = new TextE("Jack bietet ein Bier an. [J] Ja | [N] Nein");
+        jackDialog.positionSetzen(350, 400);
+        jackDialog.farbeSetzen("Rot");
+        jackDialog.sichtbarSetzen(false);
         
-        // Pixelify Sans Schriftart anwenden
-        FontHelper.anwenden(bjStatus, bjDealerLabel, bjDealerPunkte, bjSpielerLabel, bjSpielerPunkte, bot1Label);
+        debugMenuAktiv = false;
+        debugLabel = new TextE("DEBUG [M]: [X] Mid-Tisch | [C] High-Tisch | [V] Win | [B] Lose");
+        debugLabel.positionSetzen(20, 1040);
+        debugLabel.farbeSetzen("Gelb");
+        debugLabel.sichtbarSetzen(false);
+        
+        FontHelper.anwenden(bjStatus, bjDealerLabel, bjDealerPunkte, bjSpielerLabel, bjSpielerPunkte, bot1Label, jackDialog, debugLabel);
         
         rundeLaeuft = false;
         setzPhase = true;
         dealerKarteSichtbar = false;
+        wartetAufRundeStart = false;
         
-        // Deck EINMALIG initialisieren, Karten werden immer zurueckgegeben
         deck = new Kartenstapel();
         spielerHand = new Hand();
         dealerHand = new Hand();
         
-        // Spiel startet mit Intro-Cutscene
         sidebar = new Sidebar();
         aktuelleSzene = "cutscene";
         cutscene.ladeIntro();
         cutscene.anzeigen();
         sidebar.aktualisieren(spielstand);
+        
+        startGameLoop();
+    }
+    
+    private void startGameLoop() {
+        gameLoopThread = new Thread(() -> {
+            long lastTime = System.currentTimeMillis();
+            while (true) {
+                long now = System.currentTimeMillis();
+                long delta = now - lastTime;
+                
+                // 1-Sekunden Timer Update
+                if (delta >= 1000) {
+                    if (aktuelleSzene != null && !aktuelleSzene.equals("cutscene")) {
+                        spielstand.zeitAbziehen(1);
+                        sidebar.aktualisieren(spielstand);
+                        if (spielstand.getZeitVerbleibend() <= 0 && !spielstand.hatGewonnen()) {
+                            spielstand.setGeld(-1); // Game Over triggern
+                            pruefeSpielstatus();
+                        }
+                    }
+                    lastTime = now;
+                }
+                
+                // QTE Timeout Jack
+                if (qteAktiv && (now - qteStartTime > 800)) {
+                    qteAktiv = false;
+                    jackWarnung.sichtbarSetzen(false);
+                    spielstand.verdachtAendern(30);
+                    bjStatus.inhaltSetzen("Jack hat dich beobachtet! +30% Verdacht");
+                    sfxError.play();
+                    sidebar.aktualisieren(spielstand);
+                }
+                
+                // Herzklopfen & Audio
+                if (spielstand.getVerdacht() > 60 && Math.random() < 0.02) {
+                    sfxHeartbeat.play(); // Ab und zu Herzschlag
+                }
+                
+                try { Thread.sleep(50); } catch(Exception e) {}
+            }
+        });
+        gameLoopThread.start();
+    }
+    
+    private void aktualisiereTischGrafik() {
+        int level = spielstand.getTischLevel();
+        if (level != aktuellerTischLevel) {
+            aktuellerTischLevel = level;
+            
+            // Alten Hintergrund verstecken
+            if (tischHintergrund != null) tischHintergrund.sichtbarSetzen(false);
+            
+            if (level == 0) tischHintergrund = tischHintergrundLow;
+            else if (level == 1) tischHintergrund = tischHintergrundMid;
+            else if (level == 2) tischHintergrund = tischHintergrundHigh;
+            
+            tischHintergrund.sichtbarSetzen("blackjack".equals(aktuelleSzene));
+            
+            if (level == 2) {
+                jackBody.sichtbarSetzen(true);
+                jackHead.sichtbarSetzen(true);
+            } else {
+                jackBody.sichtbarSetzen(false);
+                jackHead.sichtbarSetzen(false);
+            }
+            
+            // Limit Update
+            if (level == 0) spielstand.setEinsatz(Math.min(spielstand.getEinsatz(), 200));
+            if (level == 1) spielstand.setEinsatz(Math.min(spielstand.getEinsatz(), 500));
+            if (level == 2) spielstand.setEinsatz(Math.min(spielstand.getEinsatz(), 1000));
+        }
     }
     
     @Override
     public void tasteReagieren(int taste) {
         if (aktuelleSzene == null) return;
         
+        // === DEBUG MENU ===
+        if (taste == Taste.M) {
+            debugMenuAktiv = !debugMenuAktiv;
+            debugLabel.sichtbarSetzen(debugMenuAktiv);
+            return;
+        }
+        if (debugMenuAktiv) {
+            if (taste == Taste.X) {
+                spielstand.setGeld(2000);
+                aktualisiereTischGrafik();
+                sidebar.aktualisieren(spielstand);
+                if (bjStatus != null) bjStatus.inhaltSetzen("DEBUG: Skip Mid-Tisch");
+                return;
+            }
+            if (taste == Taste.C) {
+                spielstand.setGeld(5000);
+                aktualisiereTischGrafik();
+                sidebar.aktualisieren(spielstand);
+                if (bjStatus != null) bjStatus.inhaltSetzen("DEBUG: Skip High-Tisch");
+                return;
+            }
+            if (taste == Taste.V) {
+                spielstand.setGeld(10000);
+                pruefeSpielstatus();
+                return;
+            }
+            if (taste == Taste.B) {
+                spielstand.setGeld(-1);
+                pruefeSpielstatus();
+                return;
+            }
+        }
+        
         // === CUTSCENE ===
         if ("cutscene".equals(aktuelleSzene)) {
             if (taste == Taste.LEERTASTE) {
-                boolean fertig = cutscene.weiter();
-                if (fertig) {
-                    // Nach Intro -> Blackjack Tisch
+                if (cutscene.weiter()) {
                     if (!spielstand.istPleite() && !spielstand.hatGewonnen()) {
                         wechselZuBlackjack();
                     }
@@ -171,13 +302,47 @@ public class PayBackJack extends SPIEL {
             return;
         }
         
-        // === SZENEN-WECHSEL (immer verfügbar) ===
+        // === MINIGAME AKTIV ===
+        if (durchsuchung.istAktiv()) {
+            if (taste == Taste.LEERTASTE) {
+                boolean erfolg = durchsuchung.stoppen();
+                if (erfolg) {
+                    sfxSearchSuccess.play();
+                    bjStatus.inhaltSetzen("Jack hat nichts gefunden...");
+                } else {
+                    sfxSearchFail.play();
+                    bjStatus.inhaltSetzen("ERWISCHT! Geld auf 1000€, Items weg.");
+                    spielstand.setGeld(1000);
+                    spielstand.inventarLeeren();
+                    aktuellerTischLevel = -1; // Force Graphic Update
+                    aktualisiereTischGrafik();
+                }
+                spielstand.setVerdacht(0);
+                spielstand.setGeschummelt(false);
+                sidebar.aktualisieren(spielstand);
+                
+                if (wartetAufRundeStart) {
+                    wartetAufRundeStart = false;
+                    fortsetzeRundeStart();
+                } else if (setzPhase) {
+                    bjStatus.inhaltSetzen("Einsatz wählen...");
+                }
+            }
+            return;
+        }
+        
+        // === SZENEN-WECHSEL ===
         if (taste == Taste._1 && !rundeLaeuft) {
             sfxHover.play();
             wechselZuBlackjack();
             return;
         }
         if (taste == Taste._2 && !rundeLaeuft) {
+            if (spielstand.getTischLevel() == 2) {
+                sfxError.play();
+                bjStatus.inhaltSetzen("Kein Bar-Zugang am High-End Tisch!");
+                return;
+            }
             sfxHover.play();
             wechselZuBar();
             return;
@@ -193,63 +358,57 @@ public class PayBackJack extends SPIEL {
             barTaste(taste);
         }
         
-        // === INVENTAR NUTZEN (3-8) - In jeder Szene möglich ===
+        // === INVENTAR NUTZEN ===
         if (("blackjack".equals(aktuelleSzene) || "bar".equals(aktuelleSzene)) && taste >= Taste._3 && taste <= Taste._8) {
-            int slot = 0;
-            if (taste == Taste._3) slot = 0;
-            if (taste == Taste._4) slot = 1;
-            if (taste == Taste._5) slot = 2;
-            if (taste == Taste._6) slot = 3;
-            if (taste == Taste._7) slot = 4;
-            if (taste == Taste._8) slot = 5;
-
-            String item = spielstand.getInventar()[slot];
-            if (item != null) {
-                if (item.equals("Zigarette")) sfxSmoke.play();
-                else if (item.equals("Lupe")) sfxMagnifier.play();
-                else sfxBuy.play(); // Platzhalter fuer Essen/Trinken Sound
+            int slot = taste - Taste._3; 
+            String genutzt = spielstand.itemNutzen(slot);
+            if (genutzt != null) {
+                if (genutzt.equals("Zigarette")) {
+                    sfxSmoke.play();
+                    spielstand.setGeschummelt(true);
+                    if (spielstand.getVerdacht() > 80 && "blackjack".equals(aktuelleSzene)) {
+                        durchsuchung.starten(false);
+                    }
+                } else if (genutzt.equals("Lupe") && "blackjack".equals(aktuelleSzene)) {
+                    lupeBenuetzen();
+                } else if (genutzt.equals("Ass") && "blackjack".equals(aktuelleSzene) && rundeLaeuft) {
+                    spielerHand.karteHinzufuegen(new Karte("Herz", "Ass", 11));
+                    sfxCardDeal.play();
+                    spielerHand.alleZentriertAnzeigen(960, 768, false);
+                    bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+                    spielstand.setGeschummelt(true);
+                } else {
+                    sfxBuy.play(); 
+                }
                 
-                spielstand.itemNutzen(slot);
                 sidebar.aktualisieren(spielstand);
                 if (aktuelleSzene.equals("bar")) barSzene.aktualisieren(spielstand);
-                bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
-                
-                // SOFORT checken ob man durch das Item kollabiert ist (z.B. zu viel Bier)
-                if (spielstand.istKollabiert()) {
-                    if (aktuelleSzene.equals("bar")) {
-                        wechselZuBlackjack(); // Zurueck zum Tisch um die Nachricht zu sehen
-                    }
-                    pruefeSpielstatus();
-                }
+                if (spielerHand != null) bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
+                pruefeSpielstatus();
             }
         }
     }
     
-    // ==========================================
-    //            SZENEN-WECHSEL
-    // ==========================================
-    
     private void wechselZuBlackjack() {
         barSzene.verstecken();
         cutscene.verstecken();
-        
-        // MUSIK WECHSEL
         musikBar.pause();
         musikTisch.unpause();
         
+        aktualisiereTischGrafik();
         blackjackAnzeigen();
         aktuelleSzene = "blackjack";
         sidebar.szeneMarkieren("blackjack");
         anleitung.sichtbarSetzen(true);
         bjStatus.inhaltSetzen("");
         setzPhase = true;
+        
+        checkTutorials();
     }
     
     private void wechselZuBar() {
         blackjackVerstecken();
         cutscene.verstecken();
-        
-        // MUSIK WECHSEL
         musikTisch.pause();
         musikBar.unpause();
         
@@ -257,17 +416,72 @@ public class PayBackJack extends SPIEL {
         barSzene.aktualisieren(spielstand);
         aktuelleSzene = "bar";
         sidebar.szeneMarkieren("bar");
+        
+        checkTutorials();
     }
     
-    // ==========================================
-    //            BLACKJACK LOGIK
-    // ==========================================
+    private void checkTutorials() {
+        int level = spielstand.getTischLevel();
+        if (level == 0 && spielstand.getRundenGespielt() >= 2 && !tutorialLowGesehen) {
+            tutorialLowGesehen = true;
+            spielstand.itemHinzufuegen("Lupe");
+            spielstand.itemHinzufuegen("Bier");
+            if (!aktuelleSzene.equals("bar")) wechselZuBar();
+            barSzene.juanSagt("Dein Nachbar wurde erwischt. Hier, nimm das.");
+            sidebar.aktualisieren(spielstand);
+        }
+        if (level == 1 && !tutorialMidGesehen) {
+            tutorialMidGesehen = true;
+            spielstand.itemHinzufuegen("Ass");
+            spielstand.itemHinzufuegen("Ass");
+            spielstand.itemHinzufuegen("Zigarette");
+            spielstand.itemHinzufuegen("Zigarette");
+            if (!aktuelleSzene.equals("bar")) wechselZuBar();
+            barSzene.juanSagt("Mid-End Tische sind hart. Hier, ein kleines Geschenk.");
+            sidebar.aktualisieren(spielstand);
+        }
+    }
     
     private void blackjackTaste(int taste) {
+        if (qteAktiv) {
+            if (taste == Taste.F) {
+                qteAktiv = false;
+                jackWarnung.sichtbarSetzen(false);
+                bjStatus.inhaltSetzen("Jack Blick abgewehrt.");
+            } else {
+                qteAktiv = false;
+                jackWarnung.sichtbarSetzen(false);
+                spielstand.verdachtAendern(30);
+                bjStatus.inhaltSetzen("Jack hat dich beobachtet! +30% Verdacht");
+            }
+            return;
+        }
+        
+        if (jackBietetBier) {
+            if (taste == Taste.J) {
+                jackBietetBier = false;
+                jackDialog.sichtbarSetzen(false);
+                spielstand.alkoholAendern(20);
+                spielstand.verdachtAendern(-10);
+                sidebar.aktualisieren(spielstand);
+                bjStatus.inhaltSetzen("Jack nickt. Du trinkst das Bier.");
+            } else if (taste == Taste.N) {
+                jackBietetBier = false;
+                jackDialog.sichtbarSetzen(false);
+                bjStatus.inhaltSetzen("Jack ist beleidigt. Er durchsucht dich hart!");
+                durchsuchung.starten(true); 
+            }
+            return;
+        }
+
         if (setzPhase) {
+            int maxLimit = 200;
+            if (spielstand.getTischLevel() == 1) maxLimit = 500;
+            if (spielstand.getTischLevel() == 2) maxLimit = 1000;
+            
             if (taste == Taste.OBEN) {
                 int neuerEinsatz = spielstand.getEinsatz() + 50;
-                if (neuerEinsatz <= spielstand.getGeld()) {
+                if (neuerEinsatz <= spielstand.getGeld() && neuerEinsatz <= maxLimit) {
                     spielstand.setEinsatz(neuerEinsatz);
                     sidebar.aktualisieren(spielstand);
                     bjStatus.inhaltSetzen("Einsatz: " + neuerEinsatz + "€ | LEERTASTE = Start");
@@ -292,8 +506,15 @@ public class PayBackJack extends SPIEL {
             if (taste == Taste.S) stand();
             if (taste == Taste.D && spielerHand.anzahlKarten() == 2) doubleDown();
             if (taste == Taste.L) lupeBenuetzen();
+            
+            // Random Jack's Blick
+            if (spielstand.getTischLevel() == 2 && Math.random() < 0.05 && !qteAktiv && !durchsuchung.istAktiv()) {
+                qteAktiv = true;
+                qteStartTime = System.currentTimeMillis();
+                jackWarnung.sichtbarSetzen(true);
+                sfxWarning.play();
+            }
         } else {
-            // Nach Runde -> LEERTASTE für neue Setz-Phase
             if (taste == Taste.LEERTASTE) {
                 pruefeSpielstatus();
             }
@@ -302,21 +523,35 @@ public class PayBackJack extends SPIEL {
     
     private void starteRunde() {
         setzPhase = false;
+        
+        int level = spielstand.getTischLevel();
+        double baseChance = 0;
+        if (level == 1) baseChance = 1.0 / 8.0;
+        if (level == 2) baseChance = 1.0 / 5.0;
+        if (spielstand.hatGeschummelt()) baseChance += 0.05;
+        
+        if (Math.random() < baseChance && level > 0) {
+            bjStatus.inhaltSetzen("JACK WIRD MISSTRAUISCH! DURCHSUCHUNG!");
+            wartetAufRundeStart = true;
+            durchsuchung.starten(false);
+            return;
+        }
+        
+        fortsetzeRundeStart();
+    }
+    
+    private void fortsetzeRundeStart() {
         rundeLaeuft = true;
         dealerKarteSichtbar = false;
         
         int einsatz = spielstand.getEinsatz();
         spielstand.geldAendern(-einsatz);
         
-        // Alte Karten verstecken und in den Stapel zurueckgeben
         spielerHand.kartenZurueckgeben(deck);
         dealerHand.kartenZurueckgeben(deck);
         if (bot1 != null) bot1.zuruecksetzen(deck);
-        
-        // Stapel mischen
         deck.mischen();
         
-        // Austeilen: Spieler, Bots und Dealer
         spielerHand.karteHinzufuegen(deck.karteZiehen());
         sfxCardDeal.play();
         if (bot1 != null) bot1.getHand().karteHinzufuegen(deck.karteZiehen());
@@ -326,20 +561,14 @@ public class PayBackJack extends SPIEL {
         spielerHand.karteHinzufuegen(deck.karteZiehen());
         sfxCardDeal.play();
         if (bot1 != null) bot1.getHand().karteHinzufuegen(deck.karteZiehen());
-        dealerHand.karteHinzufuegen(deck.karteZiehen()); // Dealer bekommt 2. Karte
+        dealerHand.karteHinzufuegen(deck.karteZiehen()); 
         sfxCardDeal.play();
         
-        // Bots spielen sofort
         botsSpielenLassen();
         
-        // Anzeigen (Dealer Karte an Index 1 ist verdeckt)
-        // Linke Kanten sind aligned bei 714
-        spielerHand.alleZentriertAnzeigen(960, 768, false); // Center 960, Y 768
-        dealerHand.positionAnzeigen(714, 78, true); // Dealer nicht zentriert, Linke Kante 714
-        
-        if (bot1 != null) {
-            bot1.kartenAnzeigen(1428, 720); // Nach deinen Eckwerten
-        }
+        spielerHand.alleZentriertAnzeigen(960, 768, false); 
+        dealerHand.positionAnzeigen(714, 78, true); 
+        if (bot1 != null) bot1.kartenAnzeigen(1428, 720); 
         
         bjSpielerPunkte.inhaltSetzen("Punkte: " + spielerHand.punkteBerechnen());
         bjDealerPunkte.inhaltSetzen("Dealer: ?");
@@ -347,7 +576,6 @@ public class PayBackJack extends SPIEL {
         
         sidebar.aktualisieren(spielstand);
         
-        // Sofort BlackJack prüfen
         if (spielerHand.punkteBerechnen() == 21) {
             gewinn(2.5);
             bjStatus.inhaltSetzen("BLACKJACK! Gewinn: " + (int)(einsatz * 2.5) + "€");
@@ -400,11 +628,9 @@ public class PayBackJack extends SPIEL {
     }
     
     private void stand() {
-        // Dealer deckt auf
         sfxCardFlip.play();
         dealerHand.positionAnzeigen(714, 78, false);
         
-        // Dealer zieht
         while (dealerHand.punkteBerechnen() < 17) {
             dealerHand.karteHinzufuegen(deck.karteZiehen());
             sfxCardDeal.play();
@@ -423,18 +649,21 @@ public class PayBackJack extends SPIEL {
             bjStatus.inhaltSetzen("Dealer gewinnt. -" + einsatz + "€");
             rundeBeenden();
         } else {
-            gewinn(1.0); // Push
+            gewinn(1.0); 
             bjStatus.inhaltSetzen("Push - Einsatz zurueck.");
         }
     }
     
     private void lupeBenuetzen() {
-        if (spielstand.kannLupeNutzen() && rundeLaeuft && !dealerKarteSichtbar) {
+        if (spielstand.kannLupeNutzen() && !dealerKarteSichtbar) {
             sfxMagnifier.play();
             spielstand.lupeBenutzen();
+            spielstand.setGeschummelt(true);
+            spielstand.verdachtAendern(20);
             bjDealerPunkte.inhaltSetzen("Dealer: " + dealerHand.punkteBerechnen());
             dealerKarteSichtbar = true;
             dealerHand.positionAnzeigen(714, 78, false);
+            sidebar.aktualisieren(spielstand);
         }
     }
     
@@ -448,7 +677,6 @@ public class PayBackJack extends SPIEL {
         rundeLaeuft = false;
         spielstand.rundeVorbei();
         
-        // Kollaps prüfen
         if (spielstand.istKollabiert()) {
             sfxCollapse.play();
             spielstand.kollapsDurchfuehren();
@@ -457,20 +685,23 @@ public class PayBackJack extends SPIEL {
         
         sidebar.aktualisieren(spielstand);
         
-        // Einsatz zurücksetzen nach Double
         if (spielstand.getEinsatz() > spielstand.getGeld() && spielstand.getGeld() > 0) {
             spielstand.setEinsatz(50);
+        }
+        
+        if (spielstand.getTischLevel() == 2 && spielstand.getGeld() > 0) {
+            jackBietetBier = true;
+            jackDialog.sichtbarSetzen(true);
         }
     }
     
     private void pruefeSpielstatus() {
-        // Erstmal Kollaps checken
         if (spielstand.istKollabiert()) {
             sfxCollapse.play();
             spielstand.kollapsDurchfuehren();
             bjStatus.inhaltSetzen("KOLLABIERT! -5000€ Strafe. [LEERTASTE]");
             sidebar.aktualisieren(spielstand);
-            return; // Erstmal erholen
+            return; 
         }
         
         if (spielstand.hatGewonnen()) {
@@ -485,79 +716,81 @@ public class PayBackJack extends SPIEL {
             aktuelleSzene = "cutscene";
         } else {
             setzPhase = true;
-            bjStatus.inhaltSetzen("");
+            bjStatus.inhaltSetzen("Einsatz wählen... [LEERTASTE]");
+            aktualisiereTischGrafik();
+            checkTutorials();
         }
     }
     
-    // ==========================================
-    //            BAR LOGIK
-    // ==========================================
-    
     private void barTaste(int taste) {
+        int lvl = spielstand.getTischLevel();
         if (taste == Taste._3) {
-            if (spielstand.suppeKaufen()) {
+            if (spielstand.kaufen("Suppe", barSzene.getPreis("Suppe", lvl))) {
                 sfxBuy.play();
-                barSzene.setFeedback("Suppe gekauft! Slot [3]");
-                barSzene.juanSagt("Gute Wahl. Staerkt die Nerven.");
+                barSzene.setFeedback("Suppe gekauft!");
             } else {
                 sfxError.play();
                 barSzene.setFeedback("Inventar voll oder kein Geld!");
             }
         }
         if (taste == Taste._4) {
-            if (spielstand.wasserKaufen()) {
+            if (spielstand.kaufen("Wasser", barSzene.getPreis("Wasser", lvl))) {
                 sfxBuy.play();
-                barSzene.setFeedback("Wasser gekauft! Slot [4]");
-                barSzene.juanSagt("Klares Wasser. Selten hier unten.");
+                barSzene.setFeedback("Wasser gekauft!");
             } else {
                 sfxError.play();
                 barSzene.setFeedback("Inventar voll oder kein Geld!");
             }
         }
         if (taste == Taste._5) {
-            if (spielstand.bierKaufen()) {
+            if (spielstand.kaufen("Bier", barSzene.getPreis("Bier", lvl))) {
                 sfxBuy.play();
-                barSzene.setFeedback("Bier gekauft! Slot [5]");
-                barSzene.juanSagt("Prost! Aber pass auf...");
+                barSzene.setFeedback("Bier gekauft!");
+            } else {
+                sfxError.play();
+                barSzene.setFeedback("Inventar voll oder kein Geld!");
+            }
+        }
+        if (taste == Taste.U) {
+            if (spielstand.kaufen("SchmutzigesWasser", barSzene.getPreis("SchmutzigesWasser", lvl))) {
+                sfxBuy.play();
+                barSzene.setFeedback("Schm. Wasser gekauft!");
+            } else {
+                sfxError.play();
+                barSzene.setFeedback("Inventar voll oder kein Geld!");
+            }
+        }
+        if (taste == Taste.I) {
+            if (spielstand.kaufen("VerdorbeneSuppe", barSzene.getPreis("VerdorbeneSuppe", lvl))) {
+                sfxBuy.play();
+                barSzene.setFeedback("Verd. Suppe gekauft!");
             } else {
                 sfxError.play();
                 barSzene.setFeedback("Inventar voll oder kein Geld!");
             }
         }
         if (taste == Taste._6) {
-            if (spielstand.lupeKaufen()) {
+            if (spielstand.kaufen("Lupe", 10000)) {
                 sfxBuy.play();
-                barSzene.setFeedback("Lupe gekauft! Druecke [L] am Tisch.");
-                barSzene.juanSagt("Damit siehst du was der Dealer hat. Alle 10 Runden.");
+                barSzene.setFeedback("Lupe gekauft!");
             } else {
                 sfxError.play();
                 barSzene.setFeedback("Zu teuer oder Inventar voll!");
             }
         }
         if (taste == Taste._7) {
-            if (spielstand.getGeld() >= 500) {
-                if (spielstand.itemHinzufuegen("Zigarette")) {
-                    sfxBuy.play();
-                    spielstand.geldAendern(-500);
-                    barSzene.setFeedback("Zigarette gekauft!");
-                    barSzene.juanSagt("Die bringen Glueck... sagt man.");
-                } else {
-                    sfxError.play();
-                    barSzene.setFeedback("Inventar voll!");
-                }
+            if (spielstand.kaufen("Zigarette", 500)) {
+                sfxBuy.play();
+                barSzene.setFeedback("Zigarette gekauft!");
             } else {
                 sfxError.play();
-                barSzene.setFeedback("Nicht genug Geld!");
+                barSzene.setFeedback("Nicht genug Geld oder voll!");
             }
         }
         
         sidebar.aktualisieren(spielstand);
         barSzene.aktualisieren(spielstand);
     }
-    
-    // ==========================================
-    //        BLACKJACK ANZEIGE
-    // ==========================================
     
     private void blackjackAnzeigen() {
         tischHintergrund.sichtbarSetzen(true);
@@ -568,7 +801,6 @@ public class PayBackJack extends SPIEL {
         bjDealerPunkte.sichtbarSetzen(true);
         if (bot1Label != null) bot1Label.sichtbarSetzen(true);
         
-        // Wenn eine Runde aktiv ist, muessen die Karten wieder sichtbar gemacht werden
         if (rundeLaeuft || !setzPhase) {
             spielerHand.alleZentriertAnzeigen(960, 768, false);
             dealerHand.positionAnzeigen(714, 78, !dealerKarteSichtbar);
@@ -584,10 +816,8 @@ public class PayBackJack extends SPIEL {
         bjDealerLabel.sichtbarSetzen(false);
         bjSpielerPunkte.sichtbarSetzen(false);
         bjDealerPunkte.sichtbarSetzen(false);
-        bjDealerPunkte.sichtbarSetzen(false);
         if (bot1Label != null) bot1Label.sichtbarSetzen(false);
         
-        // Wir verstecken sie hier nur optisch beim Wechsel in die Bar.
         if (spielerHand != null) spielerHand.alleOptischVerstecken();
         if (dealerHand != null) dealerHand.alleOptischVerstecken();
         if (bot1 != null && bot1.getHand() != null) bot1.getHand().alleOptischVerstecken();

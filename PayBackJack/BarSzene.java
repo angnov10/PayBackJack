@@ -2,7 +2,7 @@ import ea.edu.*;
 
 /**
  * Die Bar-Szene: Juan und seine Angebote.
- * Hier kann der Spieler essen, trinken und Items kaufen.
+ * Dynamische Preise basierend auf dem Tisch-Level.
  */
 public class BarSzene {
     
@@ -20,6 +20,8 @@ public class BarSzene {
     private TextE menuSuppe;
     private TextE menuWasser;
     private TextE menuBier;
+    private TextE menuSchmutzWasser;
+    private TextE menuVerdorbeneSuppe;
     
     // Items
     private TextE itemTitle;
@@ -34,14 +36,12 @@ public class BarSzene {
     
     private boolean sichtbar;
     
-    private static final int OFFSET_X = 600; // Rechts von der Sidebar (100 * 6)
+    private static final int OFFSET_X = 600; // Rechts von der Sidebar
     
     public BarSzene() {
-        // Bar Hintergrund (jetzt über das ganze Bild)
         hintergrund = new BildE(0, 0, "../Assets/Sprites/Bar/Background_640x360.png");
         hintergrund.sichtbarSetzen(false);
         
-        // Juan (vergroessert)
         juanKoerper = new BildE(OFFSET_X + 150, 540, "../Assets/Sprites/Bar/JuanBody_40x80.png");
         juanKoerper.sichtbarSetzen(false);
         
@@ -62,28 +62,40 @@ public class BarSzene {
         
         // Menü
         menuTitle = new TextE("--- MENUE ---");
-        menuTitle.positionSetzen(OFFSET_X + 200, 100);
+        menuTitle.positionSetzen(OFFSET_X + 200, 50);
         menuTitle.farbeSetzen("Gelb");
         menuTitle.groesseSetzen(20);
         menuTitle.sichtbarSetzen(false);
         
-        menuSuppe = new TextE("[3] Suppe des Tages - 10€ (Slot [3])");
-        menuSuppe.positionSetzen(OFFSET_X + 200, 150);
+        menuSuppe = new TextE("[3] Suppe");
+        menuSuppe.positionSetzen(OFFSET_X + 200, 90);
         menuSuppe.farbeSetzen("Weiß");
         menuSuppe.groesseSetzen(16);
         menuSuppe.sichtbarSetzen(false);
         
-        menuWasser = new TextE("[4] Wasser - 6€ (Slot [4])");
-        menuWasser.positionSetzen(OFFSET_X + 200, 190);
+        menuWasser = new TextE("[4] Wasser");
+        menuWasser.positionSetzen(OFFSET_X + 200, 130);
         menuWasser.farbeSetzen("Weiß");
         menuWasser.groesseSetzen(16);
         menuWasser.sichtbarSetzen(false);
         
-        menuBier = new TextE("[5] Bier - 3€ (Slot [5])");
-        menuBier.positionSetzen(OFFSET_X + 200, 230);
+        menuBier = new TextE("[5] Bier");
+        menuBier.positionSetzen(OFFSET_X + 200, 170);
         menuBier.farbeSetzen("Weiß");
         menuBier.groesseSetzen(16);
         menuBier.sichtbarSetzen(false);
+        
+        menuSchmutzWasser = new TextE("[U] Schmutziges Wasser");
+        menuSchmutzWasser.positionSetzen(OFFSET_X + 200, 210);
+        menuSchmutzWasser.farbeSetzen("Grau");
+        menuSchmutzWasser.groesseSetzen(16);
+        menuSchmutzWasser.sichtbarSetzen(false);
+        
+        menuVerdorbeneSuppe = new TextE("[I] Verdorbene Suppe");
+        menuVerdorbeneSuppe.positionSetzen(OFFSET_X + 200, 250);
+        menuVerdorbeneSuppe.farbeSetzen("Grau");
+        menuVerdorbeneSuppe.groesseSetzen(16);
+        menuVerdorbeneSuppe.sichtbarSetzen(false);
         
         // Items
         itemTitle = new TextE("--- SPEZIAL ---");
@@ -105,7 +117,7 @@ public class BarSzene {
         itemZigarette.sichtbarSetzen(false);
         
         // Steuerung
-        steuerungText = new TextE("[1] Zum Blackjack Tisch | [3-7] Kaufen");
+        steuerungText = new TextE("[1] Zum Blackjack Tisch | [3-7, U, I] Kaufen");
         steuerungText.positionSetzen(OFFSET_X + 200, 1000);
         steuerungText.farbeSetzen("Gelb");
         steuerungText.groesseSetzen(16);
@@ -118,8 +130,8 @@ public class BarSzene {
         feedbackText.groesseSetzen(18);
         feedbackText.sichtbarSetzen(false);
         
-        // Pixelify Sans Schriftart anwenden
-        FontHelper.anwenden(juanName, juanDialog, menuTitle, menuSuppe, menuWasser, menuBier, itemTitle, itemLupe, itemZigarette, steuerungText, feedbackText);
+        FontHelper.anwenden(juanName, juanDialog, menuTitle, menuSuppe, menuWasser, menuBier, menuSchmutzWasser, menuVerdorbeneSuppe);
+        FontHelper.anwenden(itemTitle, itemLupe, itemZigarette, steuerungText, feedbackText);
         
         sichtbar = false;
     }
@@ -135,6 +147,8 @@ public class BarSzene {
         menuSuppe.sichtbarSetzen(true);
         menuWasser.sichtbarSetzen(true);
         menuBier.sichtbarSetzen(true);
+        menuSchmutzWasser.sichtbarSetzen(true);
+        menuVerdorbeneSuppe.sichtbarSetzen(true);
         itemTitle.sichtbarSetzen(true);
         itemLupe.sichtbarSetzen(true);
         itemZigarette.sichtbarSetzen(true);
@@ -153,6 +167,8 @@ public class BarSzene {
         menuSuppe.sichtbarSetzen(false);
         menuWasser.sichtbarSetzen(false);
         menuBier.sichtbarSetzen(false);
+        menuSchmutzWasser.sichtbarSetzen(false);
+        menuVerdorbeneSuppe.sichtbarSetzen(false);
         itemTitle.sichtbarSetzen(false);
         itemLupe.sichtbarSetzen(false);
         itemZigarette.sichtbarSetzen(false);
@@ -170,10 +186,32 @@ public class BarSzene {
         juanDialog.inhaltSetzen(text);
     }
     
-    /**
-     * Aktualisiert die Item-Anzeige basierend auf dem Spielstand.
-     */
+    public int getPreis(String item, int level) {
+        if (level == 0) {
+            if (item.equals("Suppe")) return 80;
+            if (item.equals("Wasser")) return 60;
+            if (item.equals("Bier")) return 40;
+            if (item.equals("SchmutzigesWasser")) return 4;
+            if (item.equals("VerdorbeneSuppe")) return 5;
+        } else {
+            if (item.equals("Suppe")) return 200;
+            if (item.equals("Wasser")) return 150;
+            if (item.equals("Bier")) return 100;
+            if (item.equals("SchmutzigesWasser")) return 10;
+            if (item.equals("VerdorbeneSuppe")) return 15;
+        }
+        return 0; // fallback
+    }
+    
     public void aktualisieren(Spielstand s) {
+        int level = s.getTischLevel();
+        
+        menuSuppe.inhaltSetzen("[3] Suppe - " + getPreis("Suppe", level) + "€");
+        menuWasser.inhaltSetzen("[4] Wasser - " + getPreis("Wasser", level) + "€");
+        menuBier.inhaltSetzen("[5] Bier - " + getPreis("Bier", level) + "€");
+        menuSchmutzWasser.inhaltSetzen("[U] Schm. Wasser - " + getPreis("SchmutzigesWasser", level) + "€ (-Durst, +Verdacht)");
+        menuVerdorbeneSuppe.inhaltSetzen("[I] Verd. Suppe - " + getPreis("VerdorbeneSuppe", level) + "€ (-Hunger, Nausea)");
+        
         if (s.hatLupe()) {
             itemLupe.inhaltSetzen("[GEKAUFT] Lupe");
             itemLupe.farbeSetzen("Grün");

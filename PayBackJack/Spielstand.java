@@ -7,17 +7,22 @@ public class Spielstand {
     private int hunger;      // 0-100, bei 0 -> Kollaps
     private int durst;       // 0-100, bei 0 -> Kollaps
     private int alkohol;     // 0-100, bei 100 -> Kollaps
+    private int verdacht;    // 0-100
+    private int zeitVerbleibend; // in Sekunden, max 900
     private int rundenGespielt;
     
-    // Items
+    // Items & Effekte
     private int lupeAbklingzeit;  // Runden bis nächster Einsatz
-    private int zigaretten;      // Anzahl geraucht (stackable)
+    private boolean nauseaEffekt;
+    private int nauseaRunden;
+    private boolean strafeErhalten;
+    private boolean letzteRundeGeschummelt; // für Durchsuchungs-Chance
     
     // Inventar (6 Slots)
     private String[] inventar = new String[6];
     
     // Spielziel
-    private static final int ZIEL_BETRAG = 100000;
+    private static final int ZIEL_BETRAG = 10000; // Angepasst auf 10k
     private static final int KOLLAPS_STRAFE = 5000;
     
     public Spielstand() {
@@ -26,25 +31,40 @@ public class Spielstand {
         hunger = 80;
         durst = 80;
         alkohol = 0;
+        verdacht = 0;
+        zeitVerbleibend = 900; // 15 Minuten
         rundenGespielt = 0;
         lupeAbklingzeit = 0;
-        zigaretten = 0;
+        nauseaEffekt = false;
+        nauseaRunden = 0;
+        strafeErhalten = false;
+        letzteRundeGeschummelt = false;
     }
     
     // === GELD ===
     public int getGeld() { return geld; }
     public void geldAendern(int betrag) { geld += betrag; }
+    public void setGeld(int betrag) { geld = betrag; }
     public int getEinsatz() { return einsatz; }
     public void setEinsatz(int e) { einsatz = e; }
     
-    public boolean istPleite() { return geld <= 0; }
+    public boolean istPleite() { return geld < 0 || zeitVerbleibend <= 0; }
     public boolean hatGewonnen() { return geld >= ZIEL_BETRAG; }
     public int getZielBetrag() { return ZIEL_BETRAG; }
     
     // === STATS ===
+    public int getTischLevel() {
+        if (geld >= 5000) return 2;
+        if (geld >= 2000) return 1;
+        return 0;
+    }
+    
     public int getHunger() { return hunger; }
     public int getDurst() { return durst; }
     public int getAlkohol() { return alkohol; }
+    public int getVerdacht() { return verdacht; }
+    public int getZeitVerbleibend() { return zeitVerbleibend; }
+    public boolean hatNausea() { return nauseaEffekt; }
     
     public void hungerAendern(int wert) { 
         hunger = Math.max(0, Math.min(100, hunger + wert)); 
@@ -55,17 +75,48 @@ public class Spielstand {
     public void alkoholAendern(int wert) { 
         alkohol = Math.max(0, Math.min(100, alkohol + wert)); 
     }
+    public void verdachtAendern(int wert) {
+        verdacht = Math.max(0, Math.min(100, verdacht + wert));
+    }
+    public void setVerdacht(int wert) {
+        verdacht = Math.max(0, Math.min(100, wert));
+    }
+    
+    public void zeitAbziehen(int sekunden) {
+        zeitVerbleibend = Math.max(0, zeitVerbleibend - sekunden);
+    }
+    
+    public void setGeschummelt(boolean val) {
+        letzteRundeGeschummelt = val;
+    }
+    
+    public boolean hatGeschummelt() {
+        return letzteRundeGeschummelt;
+    }
     
     /**
      * Wird nach jeder BlackJack-Runde aufgerufen.
-     * Hunger und Durst sinken, Alkohol baut sich leicht ab.
      */
     public void rundeVorbei() {
         rundenGespielt++;
-        hunger -= 8;  // Erhoeht von 3
-        durst -= 10;  // Erhoeht von 4
+        
+        // Schwellenwerte (Hunger/Durst < 20 entspricht im Konzept >80% Verwahrlosung)
+        if (hunger < 20) geld -= 50;
+        if (durst < 20) verdachtAendern(5);
+        if (hunger < 10 && durst < 10 && !strafeErhalten) {
+            geld -= 5000;
+            strafeErhalten = true;
+        }
+        
+        hunger -= 8;  
+        durst -= 10;  
         if (alkohol > 0) alkohol -= 2;
         if (lupeAbklingzeit > 0) lupeAbklingzeit--;
+        
+        if (nauseaRunden > 0) {
+            nauseaRunden--;
+            if (nauseaRunden <= 0) nauseaEffekt = false;
+        }
         
         // Grenzen einhalten
         hunger = Math.max(0, hunger);
@@ -100,15 +151,6 @@ public class Spielstand {
     public boolean kannLupeNutzen() { return hatLupe() && lupeAbklingzeit <= 0; }
     public void lupeBenutzen() { lupeAbklingzeit = 10; }
     
-    public int getZigaretten() { return zigaretten; }
-    public void zigaretteKaufen() {
-        if (geld >= 500) {
-            if (itemHinzufuegen("Zigarette")) {
-                geld -= 500;
-            }
-        }
-    }
-    
     // === INVENTAR LOGIK ===
     public String[] getInventar() { return inventar; }
     
@@ -122,68 +164,59 @@ public class Spielstand {
         return false;
     }
     
-    public void itemNutzen(int slot) {
-        if (slot < 0 || slot >= inventar.length || inventar[slot] == null) return;
+    // === KAUFEN ===
+    public boolean kaufen(String item, int preis) {
+        if (geld >= preis && itemHinzufuegen(item)) {
+            geld -= preis;
+            return true;
+        }
+        return false;
+    }
+    
+    public void inventarLeeren() {
+        for (int i = 0; i < inventar.length; i++) {
+            inventar[i] = null;
+        }
+    }
+    
+    public String itemNutzen(int slot) {
+        if (slot < 0 || slot >= inventar.length || inventar[slot] == null) return null;
         
         String item = inventar[slot];
         boolean verbraucht = true; // Fast alle Items werden verbraucht
         
         if (item.equals("Suppe")) {
             hungerAendern(40);
+        } else if (item.equals("VerdorbeneSuppe")) {
+            hungerAendern(40);
+            if (Math.random() < 0.3) {
+                nauseaEffekt = true;
+                nauseaRunden = 2;
+            }
         } else if (item.equals("Wasser")) {
             durstAendern(30);
+        } else if (item.equals("SchmutzigesWasser")) {
+            durstAendern(30);
+            verdachtAendern(10);
         } else if (item.equals("Bier")) {
-            alkoholAendern(20);
+            alkoholAendern(15);
             durstAendern(15);
+            verdachtAendern(-15);
         } else if (item.equals("Zigarette")) {
-            zigaretten++;
+            einsatz += (einsatz / 2);
+            verdachtAendern(20);
         } else if (item.equals("Lupe")) {
-            verbraucht = false; // Lupe bleibt im Inventar
+            verbraucht = false; 
+        } else if (item.equals("Ass")) {
+            verbraucht = true;
         }
         
         if (verbraucht) {
             inventar[slot] = null;
         }
-    }
-    
-    /**
-     * Glücks-Bonus durch Zigaretten (5% pro Stück).
-     * Gibt einen Wert zwischen 0.0 und 1.0 zurück.
-     */
-    public double getGluecksBonus() {
-        return zigaretten * 0.05;
+        return item; // Gebe zurück was genutzt wurde
     }
     
     public int getRundenGespielt() { return rundenGespielt; }
     public int getKollapStrafe() { return KOLLAPS_STRAFE; }
-    
-    // === BAR ITEMS KAUFEN ===
-    public boolean lupeKaufen() {
-        if (geld >= 10000 && itemHinzufuegen("Lupe")) { 
-            geld -= 10000; 
-            return true; 
-        }
-        return false;
-    }
-    public boolean suppeKaufen() {
-        if (geld >= 10 && itemHinzufuegen("Suppe")) { 
-            geld -= 10; 
-            return true; 
-        }
-        return false;
-    }
-    public boolean wasserKaufen() {
-        if (geld >= 6 && itemHinzufuegen("Wasser")) { 
-            geld -= 6; 
-            return true; 
-        }
-        return false;
-    }
-    public boolean bierKaufen() {
-        if (geld >= 3 && itemHinzufuegen("Bier")) { 
-            geld -= 3; 
-            return true; 
-        }
-        return false;
-    }
 }
