@@ -2,7 +2,7 @@ import ea.edu.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Huan extends Knoten {
+public class Huan {
     private BildE bodyClosed;
     private BildE bodyOpen;
     private TextE dialogText;
@@ -22,16 +22,19 @@ public class Huan extends Knoten {
         bodyClosed = new BildE(x, y, "../Assets/Sprites/Huan/huan_closed.png");
         bodyOpen = new BildE(x, y, "../Assets/Sprites/Huan/huan_open.png");
         bodyOpen.sichtbarSetzen(false);
-        
-        this.knotenHinzu(bodyClosed);
-        this.knotenHinzu(bodyOpen);
-        
         // Text is positioned above Huan
         dialogText = new TextE("");
         dialogText.positionSetzen(x - 50, y - 40);
         dialogText.farbeSetzen("Weiß");
         FontHelper.anwenden(dialogText);
-        this.knotenHinzu(dialogText);
+    }
+    
+    public void sichtbarSetzen(boolean sichtbar) {
+        if (sichtbar) {
+            zeigen();
+        } else {
+            verstecken();
+        }
     }
     
     public void sprich(String text) {
@@ -77,6 +80,7 @@ public class Huan extends Knoten {
     public void verstecken() {
         bodyClosed.sichtbarSetzen(false);
         bodyOpen.sichtbarSetzen(false);
+        dialogText.sichtbarSetzen(false);
         dialogText.inhaltSetzen("");
         if (timer != null) timer.cancel();
     }
@@ -84,6 +88,7 @@ public class Huan extends Knoten {
     public void zeigen() {
         bodyClosed.sichtbarSetzen(true);
         bodyOpen.sichtbarSetzen(false);
+        dialogText.sichtbarSetzen(true);
     }
     
     public void setzePunkte(String text) {
