@@ -24,9 +24,9 @@ public class PayBackJack extends SPIEL {
     
     // Blackjack-Tisch Elemente
     private BildE tischHintergrundLow, tischHintergrundMid, tischHintergrundHigh, tischHintergrund;
-    private BildE anleitung;
+    // Blackjack UI
     private TextE bjStatus;
-    private Huan dealerHuan;
+    private TextE bjDealerLabel;
     private TextE bjSpielerLabel;
     private TextE bjSpielerPunkte;
     private TextE bjDealerPunkte;
@@ -136,8 +136,11 @@ public class PayBackJack extends SPIEL {
         anleitung = new BildE(1510, 20, "../Assets/Sprites/Tisch/Instructions_130x100.png");
         anleitung.sichtbarSetzen(false);
         
-        dealerHuan = new Huan(810, -50); 
-        dealerHuan.sichtbarSetzen(false);
+        bjDealerLabel = new TextE("DEALER");
+        bjDealerLabel.positionSetzen(714, 20);
+        bjDealerLabel.farbeSetzen("Weiß");
+        bjDealerLabel.groesseSetzen(18);
+        bjDealerLabel.sichtbarSetzen(false);
         
         bjDealerPunkte = new TextE("");
         bjDealerPunkte.positionSetzen(714, 50);
@@ -230,7 +233,7 @@ public class PayBackJack extends SPIEL {
         settingsInfo.groesseSetzen(14);
         settingsInfo.sichtbarSetzen(false);
         
-        FontHelper.anwenden(bjStatus, bjDealerPunkte, bjSpielerLabel, bjSpielerPunkte, bot1Label, jackDialog, debugLabel);
+        FontHelper.anwenden(bjStatus, bjDealerLabel, bjDealerPunkte, bjSpielerLabel, bjSpielerPunkte, bot1Label, jackDialog, debugLabel);
         FontHelper.anwenden(settingsTitle, settingsMusic, settingsSfx, settingsInfo);
         
         rundeLaeuft = false;
@@ -514,9 +517,11 @@ public class PayBackJack extends SPIEL {
                 if (spielstand.kaufen(clickedItem, preis)) {
                     sfxBuy.play();
                     barSzene.setFeedback(clickedItem + " gekauft!");
+                    barSzene.huanSagt("Gute Wahl.");
                 } else {
                     sfxError.play();
                     barSzene.setFeedback("Zu teuer oder Inventar voll!");
+                    barSzene.huanSagt("Dafür reicht die Kohle nicht, Kumpel.");
                 }
                 sidebar.aktualisieren(spielstand);
                 barSzene.aktualisieren(spielstand);
@@ -606,7 +611,7 @@ public class PayBackJack extends SPIEL {
             spielstand.itemHinzufuegen("Lupe");
             spielstand.itemHinzufuegen("Bier");
             if (!aktuelleSzene.equals("bar")) wechselZuBar();
-            barSzene.juanSagt("Dein Nachbar wurde erwischt. Hier, nimm das.");
+            barSzene.huanSagt("Dein Nachbar wurde erwischt. Hier, nimm das.");
             sidebar.aktualisieren(spielstand);
         }
         if (level == 1 && !tutorialMidGesehen) {
@@ -616,7 +621,7 @@ public class PayBackJack extends SPIEL {
             spielstand.itemHinzufuegen("Zigarette");
             spielstand.itemHinzufuegen("Zigarette");
             if (!aktuelleSzene.equals("bar")) wechselZuBar();
-            barSzene.juanSagt("Mid-End Tische sind hart. Hier, ein kleines Geschenk.");
+            barSzene.huanSagt("Mid-End Tische sind hart. Hier, ein kleines Geschenk.");
             sidebar.aktualisieren(spielstand);
         }
     }
@@ -762,7 +767,6 @@ public class PayBackJack extends SPIEL {
         
         bjSpielerPunkte.inhaltSetzen("Du: " + spielerHand.punkteBerechnen());
         bjDealerPunkte.inhaltSetzen("Dealer: ?");
-        dealerHuan.sprich("Ich ziehe...");
         bjStatus.inhaltSetzen("");
         
         sidebar.aktualisieren(spielstand);
@@ -835,19 +839,15 @@ public class PayBackJack extends SPIEL {
         
         if (dP > 21) {
             bjStatus.inhaltSetzen("Dealer Bust! Du gewinnst " + (einsatz * 2) + "€!");
-            dealerHuan.sprich("Verdammt...");
             gewinn(2.0);
         } else if (dP > sP) {
             bjStatus.inhaltSetzen("Dealer gewinnt. -" + einsatz + "€");
-            dealerHuan.sprich("Das Haus gewinnt.");
             rundeBeenden();
         } else if (dP < sP) {
             bjStatus.inhaltSetzen("Du gewinnst " + (einsatz * 2) + "€!");
-            dealerHuan.sprich("Nicht schlecht, Jack.");
             gewinn(2.0);
         } else {
             bjStatus.inhaltSetzen("Push! Einsatz zurück.");
-            dealerHuan.sprich("Unentschieden.");
             gewinn(1.0);
         }
     }
@@ -1051,7 +1051,7 @@ public class PayBackJack extends SPIEL {
     private void blackjackAnzeigen() {
         tischHintergrund.sichtbarSetzen(true);
         anleitung.sichtbarSetzen(true);
-        dealerHuan.zeigen();
+        bjDealerLabel.sichtbarSetzen(true);
         
         bjDealerPunkte.sichtbarSetzen(true);
         bjSpielerPunkte.sichtbarSetzen(true);
@@ -1067,7 +1067,7 @@ public class PayBackJack extends SPIEL {
     private void blackjackVerstecken() {
         tischHintergrund.sichtbarSetzen(false);
         anleitung.sichtbarSetzen(false);
-        dealerHuan.verstecken();
+        bjDealerLabel.sichtbarSetzen(false);
         
         bjDealerPunkte.sichtbarSetzen(false);
         bjSpielerPunkte.sichtbarSetzen(false);

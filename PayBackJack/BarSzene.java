@@ -9,11 +9,8 @@ public class BarSzene {
     // Hintergrund
     private BildE hintergrund;
     
-    // Juan
-    private BildE juanKoerper;
-    private BildE juanKopf;
-    private TextE juanName;
-    private TextE juanDialog;
+    // Huan Bartender
+    private Huan huanBartender;
     
     // Menü Title
     private TextE menuTitle;
@@ -38,23 +35,9 @@ public class BarSzene {
         hintergrund = new BildE(0, 0, "../Assets/Sprites/Bar/Background_640x360.png");
         hintergrund.sichtbarSetzen(false);
         
-        juanKoerper = new BildE(OFFSET_X + 150, 540, "../Assets/Sprites/Bar/JuanBody_40x80.png");
-        juanKoerper.sichtbarSetzen(false);
-        
-        juanKopf = new BildE(OFFSET_X + 170, 460, "../Assets/Sprites/Bar/JuanHead_26x26.png");
-        juanKopf.sichtbarSetzen(false);
-        
-        juanName = new TextE("Juan");
-        juanName.positionSetzen(OFFSET_X + 180, 420);
-        juanName.farbeSetzen("Weiß");
-        juanName.groesseSetzen(16);
-        juanName.sichtbarSetzen(false);
-        
-        juanDialog = new TextE("Willkommen... Was darfs sein?");
-        juanDialog.positionSetzen(OFFSET_X + 300, 500);
-        juanDialog.farbeSetzen("Weiß");
-        juanDialog.groesseSetzen(18);
-        juanDialog.sichtbarSetzen(false);
+        huanBartender = new Huan(OFFSET_X + 50, 300);
+        huanBartender.sichtbarSetzen(false);
+        huanBartender.sprich("Willkommen... Was darfs sein?");
         
         // Menü Title
         menuTitle = new TextE("--- REGAL ---");
@@ -111,7 +94,7 @@ public class BarSzene {
         feedbackText.groesseSetzen(18);
         feedbackText.sichtbarSetzen(false);
         
-        FontHelper.anwenden(juanName, juanDialog, menuTitle);
+        FontHelper.anwenden(menuTitle);
         FontHelper.anwenden(preisSuppe, preisWasser, preisBier, preisSchmutzWasser, preisVerdorbeneSuppe);
         FontHelper.anwenden(itemTitle, preisLupe, preisZigarette, steuerungText, feedbackText);
         
@@ -121,10 +104,7 @@ public class BarSzene {
     public void anzeigen() {
         sichtbar = true;
         hintergrund.sichtbarSetzen(true);
-        juanKoerper.sichtbarSetzen(true);
-        juanKopf.sichtbarSetzen(true);
-        juanName.sichtbarSetzen(true);
-        juanDialog.sichtbarSetzen(true);
+        huanBartender.sichtbarSetzen(true);
         menuTitle.sichtbarSetzen(true);
         iconSuppe.sichtbarSetzen(true); preisSuppe.sichtbarSetzen(true);
         iconWasser.sichtbarSetzen(true); preisWasser.sichtbarSetzen(true);
@@ -142,10 +122,7 @@ public class BarSzene {
     public void verstecken() {
         sichtbar = false;
         hintergrund.sichtbarSetzen(false);
-        juanKoerper.sichtbarSetzen(false);
-        juanKopf.sichtbarSetzen(false);
-        juanName.sichtbarSetzen(false);
-        juanDialog.sichtbarSetzen(false);
+        huanBartender.sichtbarSetzen(false);
         menuTitle.sichtbarSetzen(false);
         iconSuppe.sichtbarSetzen(false); preisSuppe.sichtbarSetzen(false);
         iconWasser.sichtbarSetzen(false); preisWasser.sichtbarSetzen(false);
@@ -166,8 +143,8 @@ public class BarSzene {
         feedbackText.inhaltSetzen(text);
     }
     
-    public void juanSagt(String text) {
-        juanDialog.inhaltSetzen(text);
+    public void huanSagt(String text) {
+        huanBartender.sprich(text);
     }
     
     public int getPreis(String item, int level) {
