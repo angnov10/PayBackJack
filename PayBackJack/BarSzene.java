@@ -208,8 +208,7 @@ public class BarSzene {
     }
     
     private BildE erstelleIcon(int x, int y, String name) {
-        BildE b = new BildE(x, y, "../Assets/Sprites/Items/" + name + "_20x20.png");
-        b.skalieren(2.0f); // -> 40x40 sichtbar
+        BildE b = new BildE(x, y, "../Assets/Sprites/Items/" + name + "_40x40.png");
         b.sichtbarSetzen(false);
         return b;
     }
@@ -229,13 +228,13 @@ public class BarSzene {
         
         int w = 40; int h = 40;
         
-        if (x >= iconSuppe.zentrumX() - w/2 && x <= iconSuppe.zentrumX() + w/2 && y >= iconSuppe.zentrumY() - h/2 && y <= iconSuppe.zentrumY() + h/2) return "Suppe";
-        if (x >= iconWasser.zentrumX() - w/2 && x <= iconWasser.zentrumX() + w/2 && y >= iconWasser.zentrumY() - h/2 && y <= iconWasser.zentrumY() + h/2) return "Wasser";
-        if (x >= iconBier.zentrumX() - w/2 && x <= iconBier.zentrumX() + w/2 && y >= iconBier.zentrumY() - h/2 && y <= iconBier.zentrumY() + h/2) return "Bier";
-        if (x >= iconSchmutzWasser.zentrumX() - w/2 && x <= iconSchmutzWasser.zentrumX() + w/2 && y >= iconSchmutzWasser.zentrumY() - h/2 && y <= iconSchmutzWasser.zentrumY() + h/2) return "SchmutzigesWasser";
-        if (x >= iconVerdorbeneSuppe.zentrumX() - w/2 && x <= iconVerdorbeneSuppe.zentrumX() + w/2 && y >= iconVerdorbeneSuppe.zentrumY() - h/2 && y <= iconVerdorbeneSuppe.zentrumY() + h/2) return "VerdorbeneSuppe";
-        if (x >= iconLupe.zentrumX() - w/2 && x <= iconLupe.zentrumX() + w/2 && y >= iconLupe.zentrumY() - h/2 && y <= iconLupe.zentrumY() + h/2) return "Lupe";
-        if (x >= iconZigarette.zentrumX() - w/2 && x <= iconZigarette.zentrumX() + w/2 && y >= iconZigarette.zentrumY() - h/2 && y <= iconZigarette.zentrumY() + h/2) return "Zigarette";
+        if (x >= iconSuppe.getX() && x <= iconSuppe.getX() + w && y >= iconSuppe.getY() && y <= iconSuppe.getY() + h) return "Suppe";
+        if (x >= iconWasser.getX() && x <= iconWasser.getX() + w && y >= iconWasser.getY() && y <= iconWasser.getY() + h) return "Wasser";
+        if (x >= iconBier.getX() && x <= iconBier.getX() + w && y >= iconBier.getY() && y <= iconBier.getY() + h) return "Bier";
+        if (x >= iconSchmutzWasser.getX() && x <= iconSchmutzWasser.getX() + w && y >= iconSchmutzWasser.getY() && y <= iconSchmutzWasser.getY() + h) return "SchmutzigesWasser";
+        if (x >= iconVerdorbeneSuppe.getX() && x <= iconVerdorbeneSuppe.getX() + w && y >= iconVerdorbeneSuppe.getY() && y <= iconVerdorbeneSuppe.getY() + h) return "VerdorbeneSuppe";
+        if (x >= iconLupe.getX() && x <= iconLupe.getX() + w && y >= iconLupe.getY() && y <= iconLupe.getY() + h) return "Lupe";
+        if (x >= iconZigarette.getX() && x <= iconZigarette.getX() + w && y >= iconZigarette.getY() && y <= iconZigarette.getY() + h) return "Zigarette";
         
         return null;
     }

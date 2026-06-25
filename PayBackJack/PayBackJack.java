@@ -62,10 +62,18 @@ public class PayBackJack extends SPIEL {
     private boolean debugMenuAktiv;
     private TextE debugLabel;
     
+    // Settings Menu
+    private boolean settingsAktiv;
+    private RechteckE settingsBg;
+    private TextE settingsTitle, settingsMusic, settingsSfx, settingsInfo;
+    private BildE settingsMusicBg, settingsSfxBg;
+    private RechteckE settingsMusicBar, settingsSfxBar;
+    private int settingsSelection = 0; // 0 = Music, 1 = SFX
+    
     // SOUNDS
-    private Sound musikTisch, musikBar;
-    private Sound sfxCardDeal, sfxCardFlip, sfxCollapse, sfxError, sfxHover, sfxBuy, sfxMagnifier, sfxSmoke, sfxEat;
-    private Sound sfxHeartbeat, sfxSearchSuccess, sfxSearchFail, sfxWarning;
+    private AudioPlayer musikTisch, musikBar;
+    private AudioPlayer sfxCardDeal, sfxCardFlip, sfxCollapse, sfxError, sfxHover, sfxBuy, sfxMagnifier, sfxSmoke, sfxEat;
+    private AudioPlayer sfxHeartbeat, sfxSearchSuccess, sfxSearchFail, sfxWarning;
     
     // Alkohol Effekt Overlay
     private RechteckE alkoholOverlay;
@@ -86,21 +94,21 @@ public class PayBackJack extends SPIEL {
         aktuelleSzene = "intro_loading";
         
         // --- SOUNDS ---
-        musikTisch = new Sound("../Assets/Sounds/SFX/music_table.wav");
-        musikBar = new Sound("../Assets/Sounds/SFX/music_bar.wav");
-        sfxCardDeal = new Sound("../Assets/Sounds/SFX/sfx_card_deal.wav");
-        sfxCardFlip = new Sound("../Assets/Sounds/SFX/sfx_card_flip");
-        sfxCollapse = new Sound("../Assets/Sounds/SFX/sfx_collapse");
-        sfxError = new Sound("../Assets/Sounds/SFX/sfx_error");
-        sfxHover = new Sound("../Assets/Sounds/SFX/sfx_hover");
-        sfxBuy = new Sound("../Assets/Sounds/SFX/sfx_buy");
-        sfxEat = new Sound("../Assets/Sounds/SFX/sfx_eat.wav");
-        sfxMagnifier = new Sound("../Assets/Sounds/SFX/sfx_magnifier");
-        sfxSmoke = new Sound("../Assets/Sounds/SFX/sfx_smoke.wav");
-        sfxHeartbeat = new Sound("../Assets/Sounds/SFX/sfx_heartbeat.wav");
-        sfxSearchSuccess = new Sound("../Assets/Sounds/SFX/sfx_search_success.wav");
-        sfxSearchFail = new Sound("../Assets/Sounds/SFX/sfx_search_fail.wav");
-        sfxWarning = new Sound("../Assets/Sounds/SFX/sfx_warning.wav");
+        musikTisch = new AudioPlayer("../Assets/Sounds/SFX/music_table.wav", true);
+        musikBar = new AudioPlayer("../Assets/Sounds/SFX/music_bar.wav", true);
+        sfxCardDeal = new AudioPlayer("../Assets/Sounds/SFX/sfx_card_deal.wav", false);
+        sfxCardFlip = new AudioPlayer("../Assets/Sounds/SFX/sfx_card_flip", false);
+        sfxCollapse = new AudioPlayer("../Assets/Sounds/SFX/sfx_collapse", false);
+        sfxError = new AudioPlayer("../Assets/Sounds/SFX/sfx_error", false);
+        sfxHover = new AudioPlayer("../Assets/Sounds/SFX/sfx_hover", false);
+        sfxBuy = new AudioPlayer("../Assets/Sounds/SFX/sfx_buy", false);
+        sfxEat = new AudioPlayer("../Assets/Sounds/SFX/sfx_eat.wav", false);
+        sfxMagnifier = new AudioPlayer("../Assets/Sounds/SFX/sfx_magnifier", false);
+        sfxSmoke = new AudioPlayer("../Assets/Sounds/SFX/sfx_smoke.wav", false);
+        sfxHeartbeat = new AudioPlayer("../Assets/Sounds/SFX/sfx_heartbeat.wav", false);
+        sfxSearchSuccess = new AudioPlayer("../Assets/Sounds/SFX/sfx_search_success.wav", false);
+        sfxSearchFail = new AudioPlayer("../Assets/Sounds/SFX/sfx_search_fail.wav", false);
+        sfxWarning = new AudioPlayer("../Assets/Sounds/SFX/sfx_warning.wav", false);
         
         musikTisch.loop();
         musikTisch.pause();
@@ -174,7 +182,59 @@ public class PayBackJack extends SPIEL {
         debugLabel.farbeSetzen("Gelb");
         debugLabel.sichtbarSetzen(false);
         
+        // Settings UI
+        settingsAktiv = false;
+        settingsBg = new RechteckE();
+        settingsBg.breiteSetzen(600);
+        settingsBg.hoeheSetzen(450);
+        settingsBg.positionSetzen(700, 250);
+        settingsBg.farbeSetzen("Grau");
+        settingsBg.sichtbarSetzen(false);
+        
+        settingsTitle = new TextE("Einstellungen");
+        settingsTitle.positionSetzen(730, 270);
+        settingsTitle.farbeSetzen("Weiß");
+        settingsTitle.groesseSetzen(36);
+        settingsTitle.sichtbarSetzen(false);
+        
+        settingsMusic = new TextE("Musik Lautstärke");
+        settingsMusic.positionSetzen(730, 360);
+        settingsMusic.farbeSetzen("Gelb");
+        settingsMusic.groesseSetzen(24);
+        settingsMusic.sichtbarSetzen(false);
+        
+        settingsMusicBg = new BildE(730, 400, "../Assets/Sprites/Sidebar/frame_hunger.png");
+        settingsMusicBg.sichtbarSetzen(false);
+        settingsMusicBar = new RechteckE();
+        settingsMusicBar.breiteSetzen((int)(334 * AudioPlayer.getGlobalMusicVolume()));
+        settingsMusicBar.hoeheSetzen(15);
+        settingsMusicBar.positionSetzen(738, 405);
+        settingsMusicBar.farbeSetzen("Gelb");
+        settingsMusicBar.sichtbarSetzen(false);
+        
+        settingsSfx = new TextE("SFX Lautstärke");
+        settingsSfx.positionSetzen(730, 470);
+        settingsSfx.farbeSetzen("Weiß");
+        settingsSfx.groesseSetzen(24);
+        settingsSfx.sichtbarSetzen(false);
+        
+        settingsSfxBg = new BildE(730, 510, "../Assets/Sprites/Sidebar/frame_hunger.png");
+        settingsSfxBg.sichtbarSetzen(false);
+        settingsSfxBar = new RechteckE();
+        settingsSfxBar.breiteSetzen((int)(334 * AudioPlayer.getGlobalSfxVolume()));
+        settingsSfxBar.hoeheSetzen(15);
+        settingsSfxBar.positionSetzen(738, 515);
+        settingsSfxBar.farbeSetzen("Weiß");
+        settingsSfxBar.sichtbarSetzen(false);
+        
+        settingsInfo = new TextE("Hoch/Runter zum Auswählen. Links/Rechts für Lautstärke. 'O' = Zurück");
+        settingsInfo.positionSetzen(730, 600);
+        settingsInfo.farbeSetzen("Weiß");
+        settingsInfo.groesseSetzen(14);
+        settingsInfo.sichtbarSetzen(false);
+        
         FontHelper.anwenden(bjStatus, bjDealerLabel, bjDealerPunkte, bjSpielerLabel, bjSpielerPunkte, bot1Label, jackDialog, debugLabel);
+        FontHelper.anwenden(settingsTitle, settingsMusic, settingsSfx, settingsInfo);
         
         rundeLaeuft = false;
         setzPhase = true;
@@ -306,6 +366,17 @@ public class PayBackJack extends SPIEL {
     @Override
     public void tasteReagieren(int taste) {
         if (aktuelleSzene == null) return;
+        
+        // === SETTINGS MENU ===
+        if (taste == Taste.O) {
+            settingsAktiv = !settingsAktiv;
+            toggleSettings(settingsAktiv);
+            return;
+        }
+        if (settingsAktiv) {
+            handleSettingsInput(taste);
+            return;
+        }
         
         // === DEBUG MENU ===
         if (taste == Taste.M) {
@@ -796,6 +867,55 @@ public class PayBackJack extends SPIEL {
                 }
             }
         }
+    }
+    
+    private void toggleSettings(boolean aktiv) {
+        settingsBg.sichtbarSetzen(aktiv);
+        settingsTitle.sichtbarSetzen(aktiv);
+        settingsMusic.sichtbarSetzen(aktiv);
+        settingsSfx.sichtbarSetzen(aktiv);
+        settingsMusicBg.sichtbarSetzen(aktiv);
+        settingsMusicBar.sichtbarSetzen(aktiv);
+        settingsSfxBg.sichtbarSetzen(aktiv);
+        settingsSfxBar.sichtbarSetzen(aktiv);
+        settingsInfo.sichtbarSetzen(aktiv);
+        if (aktiv) {
+            updateSettingsUI();
+        } 
+    }
+
+    private void handleSettingsInput(int taste) {
+        if (taste == Taste.OBEN || taste == Taste.UNTEN) {
+            settingsSelection = 1 - settingsSelection;
+            sfxHover.play();
+            updateSettingsUI();
+        }
+        
+        if (taste == Taste.LINKS || taste == Taste.RECHTS) {
+            float delta = (taste == Taste.RECHTS) ? 0.1f : -0.1f;
+            if (settingsSelection == 0) {
+                float vol = AudioPlayer.getGlobalMusicVolume() + delta;
+                AudioPlayer.setGlobalMusicVolume(vol);
+            } else {
+                float vol = AudioPlayer.getGlobalSfxVolume() + delta;
+                AudioPlayer.setGlobalSfxVolume(vol);
+                sfxHover.play(); // Test sound
+            }
+            updateSettingsUI();
+        }
+    }
+
+    private void updateSettingsUI() {
+        settingsMusic.farbeSetzen(settingsSelection == 0 ? "Gelb" : "Weiß");
+        settingsSfx.farbeSetzen(settingsSelection == 1 ? "Gelb" : "Weiß");
+        settingsMusicBar.farbeSetzen(settingsSelection == 0 ? "Gelb" : "Weiß");
+        settingsSfxBar.farbeSetzen(settingsSelection == 1 ? "Gelb" : "Weiß");
+        
+        float mVol = AudioPlayer.getGlobalMusicVolume();
+        settingsMusicBar.breiteSetzen(Math.max(1, (int)(334 * mVol)));
+        
+        float sVol = AudioPlayer.getGlobalSfxVolume();
+        settingsSfxBar.breiteSetzen(Math.max(1, (int)(334 * sVol)));
     }
     
     private void gewinn(double multiplikator) {

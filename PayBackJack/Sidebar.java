@@ -21,8 +21,8 @@ public class Sidebar {
     private TextE timerText;
     private TextE rundenText;
     
-    // Balken-Hintergründe (grau)
-    private RechteckE hungerBg, durstBg, alkoholBg, verdachtBg;
+    // Balken-Hintergründe (Bild)
+    private BildE hungerBg, durstBg, alkoholBg, verdachtBg;
     // Balken-Füllungen (farbig)
     private RechteckE hungerBar, durstBar, alkoholBar, verdachtBar;
     // Balken-Labels
@@ -44,7 +44,9 @@ public class Sidebar {
     private static final int SIDEBAR_BREITE = 480;
     private static final int SIDEBAR_ZENTRUM_X = SIDEBAR_X + (SIDEBAR_BREITE / 2);
     private static final int BALKEN_BREITE = 350;
-    private static final int BALKEN_HOEHE = 20; // Etwas dünner für mehr Platz
+    private static final int INNER_BALKEN_BREITE = 334; // 350 - 16 (8px border on each side)
+    private static final int BALKEN_HOEHE = 25; // Hoehe des bar_frame.png
+    private static final int INNER_BALKEN_HOEHE = 15; // 25 - 10 (5px border top/bottom)
     
     public Sidebar() {
         // Hintergrund der Sidebar (Startet bei X=120, Breite 480)
@@ -87,64 +89,48 @@ public class Sidebar {
         hungerLabel.positionSetzen(leistenStartX, leistenStartY);
         hungerLabel.farbeSetzen("Weiß");
         
-        hungerBg = new RechteckE();
-        hungerBg.breiteSetzen(BALKEN_BREITE);
-        hungerBg.hoeheSetzen(BALKEN_HOEHE);
-        hungerBg.positionSetzen(leistenStartX, leistenStartY + 25);
-        hungerBg.farbeSetzen("Grau");
+        hungerBg = new BildE(leistenStartX, leistenStartY + 25, "../Assets/Sprites/Sidebar/frame_hunger.png");
         
         hungerBar = new RechteckE();
-        hungerBar.breiteSetzen(BALKEN_BREITE);
-        hungerBar.hoeheSetzen(BALKEN_HOEHE);
-        hungerBar.positionSetzen(leistenStartX, leistenStartY + 25);
+        hungerBar.breiteSetzen(INNER_BALKEN_BREITE);
+        hungerBar.hoeheSetzen(INNER_BALKEN_HOEHE);
+        hungerBar.positionSetzen(leistenStartX + 8, leistenStartY + 25 + 5);
         hungerBar.farbeSetzen("Grün");
         
         durstLabel = new TextE("Durst");
         durstLabel.positionSetzen(leistenStartX, leistenStartY + abstandY);
         durstLabel.farbeSetzen("Weiß");
         
-        durstBg = new RechteckE();
-        durstBg.breiteSetzen(BALKEN_BREITE);
-        durstBg.hoeheSetzen(BALKEN_HOEHE);
-        durstBg.positionSetzen(leistenStartX, leistenStartY + abstandY + 25);
-        durstBg.farbeSetzen("Grau");
+        durstBg = new BildE(leistenStartX, leistenStartY + abstandY + 25, "../Assets/Sprites/Sidebar/frame_durst.png");
         
         durstBar = new RechteckE();
-        durstBar.breiteSetzen(BALKEN_BREITE);
-        durstBar.hoeheSetzen(BALKEN_HOEHE);
-        durstBar.positionSetzen(leistenStartX, leistenStartY + abstandY + 25);
+        durstBar.breiteSetzen(INNER_BALKEN_BREITE);
+        durstBar.hoeheSetzen(INNER_BALKEN_HOEHE);
+        durstBar.positionSetzen(leistenStartX + 8, leistenStartY + abstandY + 25 + 5);
         durstBar.farbeSetzen("Blau");
         
         alkoholLabel = new TextE("Alkohol");
         alkoholLabel.positionSetzen(leistenStartX, leistenStartY + 2*abstandY);
         alkoholLabel.farbeSetzen("Weiß");
         
-        alkoholBg = new RechteckE();
-        alkoholBg.breiteSetzen(BALKEN_BREITE);
-        alkoholBg.hoeheSetzen(BALKEN_HOEHE);
-        alkoholBg.positionSetzen(leistenStartX, leistenStartY + 2*abstandY + 25);
-        alkoholBg.farbeSetzen("Grau");
+        alkoholBg = new BildE(leistenStartX, leistenStartY + 2*abstandY + 25, "../Assets/Sprites/Sidebar/frame_alkohol.png");
         
         alkoholBar = new RechteckE();
         alkoholBar.breiteSetzen(0);
-        alkoholBar.hoeheSetzen(BALKEN_HOEHE);
-        alkoholBar.positionSetzen(leistenStartX, leistenStartY + 2*abstandY + 25);
+        alkoholBar.hoeheSetzen(INNER_BALKEN_HOEHE);
+        alkoholBar.positionSetzen(leistenStartX + 8, leistenStartY + 2*abstandY + 25 + 5);
         alkoholBar.farbeSetzen("Rot");
         
         verdachtLabel = new TextE("Verdacht");
         verdachtLabel.positionSetzen(leistenStartX, leistenStartY + 3*abstandY);
         verdachtLabel.farbeSetzen("Weiß");
         
-        verdachtBg = new RechteckE();
-        verdachtBg.breiteSetzen(BALKEN_BREITE);
-        verdachtBg.hoeheSetzen(BALKEN_HOEHE);
-        verdachtBg.positionSetzen(leistenStartX, leistenStartY + 3*abstandY + 25);
-        verdachtBg.farbeSetzen("Grau");
+        verdachtBg = new BildE(leistenStartX, leistenStartY + 3*abstandY + 25, "../Assets/Sprites/Sidebar/frame_verdacht.png");
         
         verdachtBar = new RechteckE();
         verdachtBar.breiteSetzen(0);
-        verdachtBar.hoeheSetzen(BALKEN_HOEHE);
-        verdachtBar.positionSetzen(leistenStartX, leistenStartY + 3*abstandY + 25);
+        verdachtBar.hoeheSetzen(INNER_BALKEN_HOEHE);
+        verdachtBar.positionSetzen(leistenStartX + 8, leistenStartY + 3*abstandY + 25 + 5);
         verdachtBar.farbeSetzen("Rot");
         
         // === ITEMS BOX ===
@@ -216,25 +202,25 @@ public class Sidebar {
         else timerText.farbeSetzen("Weiß");
         
         // Hunger-Balken
-        int hungerBreite = (int)(BALKEN_BREITE * (s.getHunger() / 100.0));
+        int hungerBreite = (int)(INNER_BALKEN_BREITE * (s.getHunger() / 100.0));
         hungerBar.breiteSetzen(Math.max(1, hungerBreite));
         if (s.getHunger() < 20) hungerBar.farbeSetzen("Rot");
         else hungerBar.farbeSetzen("Grün");
         
         // Durst-Balken
-        int durstBreite = (int)(BALKEN_BREITE * (s.getDurst() / 100.0));
+        int durstBreite = (int)(INNER_BALKEN_BREITE * (s.getDurst() / 100.0));
         durstBar.breiteSetzen(Math.max(1, durstBreite));
         if (s.getDurst() < 20) durstBar.farbeSetzen("Rot");
         else durstBar.farbeSetzen("Blau");
         
         // Alkohol-Balken
-        int alkoholBreite = (int)(BALKEN_BREITE * (s.getAlkohol() / 100.0));
+        int alkoholBreite = (int)(INNER_BALKEN_BREITE * (s.getAlkohol() / 100.0));
         alkoholBar.breiteSetzen(Math.max(1, alkoholBreite));
         if (s.getAlkohol() > 80) alkoholBar.farbeSetzen("Rot");
         else alkoholBar.farbeSetzen("Gelb");
         
         // Verdacht-Balken
-        int verdachtBreite = (int)(BALKEN_BREITE * (s.getVerdacht() / 100.0));
+        int verdachtBreite = (int)(INNER_BALKEN_BREITE * (s.getVerdacht() / 100.0));
         verdachtBar.breiteSetzen(Math.max(1, verdachtBreite));
         if (s.getVerdacht() > 80) verdachtBar.farbeSetzen("Rot");
         else if (s.getVerdacht() > 50) verdachtBar.farbeSetzen("Gelb");
