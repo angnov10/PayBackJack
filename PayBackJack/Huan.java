@@ -17,15 +17,15 @@ public class Huan {
     private int mouthToggleCounter = 0;
     
     public Huan(int x, int y) {
-        super();
-        
         bodyClosed = new BildE(x, y, "../Assets/Sprites/Huan/huan_closed.png");
+        bodyClosed.sichtbarSetzen(false);
         bodyOpen = new BildE(x, y, "../Assets/Sprites/Huan/huan_open.png");
         bodyOpen.sichtbarSetzen(false);
         // Text is positioned above Huan
         dialogText = new TextE("");
         dialogText.positionSetzen(x - 50, y - 40);
         dialogText.farbeSetzen("Weiß");
+        dialogText.sichtbarSetzen(false);
         FontHelper.anwenden(dialogText);
     }
     
