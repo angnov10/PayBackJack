@@ -24,6 +24,7 @@ public class PayBackJack extends SPIEL {
     
     // Blackjack-Tisch Elemente
     private BildE tischHintergrundLow, tischHintergrundMid, tischHintergrundHigh, tischHintergrund;
+    private BildE anleitung;
     // Blackjack UI
     private TextE bjStatus;
     private TextE bjDealerLabel;
