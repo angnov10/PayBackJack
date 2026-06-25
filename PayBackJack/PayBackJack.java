@@ -161,7 +161,7 @@ public class PayBackJack extends SPIEL {
         
         bot1 = new BotSpieler("Max");
         bot1Label = new TextE("Max");
-        bot1Label.positionSetzen(1428, 500);
+        bot1Label.positionSetzen(1428, 284);
         bot1Label.farbeSetzen("Weiß");
         bot1Label.sichtbarSetzen(false);
         
@@ -764,7 +764,7 @@ public class PayBackJack extends SPIEL {
         
         spielerHand.alleZentriertAnzeigen(960, 768, false); 
         dealerHand.positionAnzeigen(714, 78, true); 
-        if (bot1 != null) bot1.kartenAnzeigen(1428, 720); 
+        if (bot1 != null) bot1.kartenAnzeigen(1428, 504); 
         
         bjSpielerPunkte.inhaltSetzen("Du: " + spielerHand.punkteBerechnen());
         bjDealerPunkte.inhaltSetzen("Dealer: ?");
@@ -1061,7 +1061,9 @@ public class PayBackJack extends SPIEL {
         if (rundeLaeuft || !setzPhase) {
             spielerHand.alleZentriertAnzeigen(960, 768, false);
             dealerHand.positionAnzeigen(714, 78, !dealerKarteSichtbar);
-            bot1.kartenAnzeigen(1428, 720);
+            if (bot1 != null && bot1.getHand() != null && !bot1.getHand().getKarten().isEmpty()) {
+                bot1.kartenAnzeigen(1428, 504);
+            }
         }
     }
     
