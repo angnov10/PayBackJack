@@ -35,7 +35,7 @@ public class BarSzene {
         hintergrund = new BildE(0, 0, "../Assets/Sprites/Bar/Background_640x360.png");
         hintergrund.sichtbarSetzen(false);
         
-        huanBartender = new Huan(OFFSET_X + 50, 660);
+        huanBartender = new Huan(OFFSET_X + 50, 480);
         huanBartender.sichtbarSetzen(false);
         huanBartender.sprich("Willkommen... Was darfs sein?");
         
