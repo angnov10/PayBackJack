@@ -1061,7 +1061,7 @@ public class PayBackJack extends SPIEL {
         if (rundeLaeuft || !setzPhase) {
             spielerHand.alleZentriertAnzeigen(960, 768, false);
             dealerHand.positionAnzeigen(714, 78, !dealerKarteSichtbar);
-            if (bot1 != null && bot1.getHand() != null && !bot1.getHand().getKarten().isEmpty()) {
+            if (bot1 != null && bot1.getHand() != null && bot1.getHand().anzahlKarten() > 0) {
                 bot1.kartenAnzeigen(1428, 504);
             }
         }
