@@ -253,7 +253,7 @@ public class PayBackJack extends SPIEL {
         alkoholOverlay.breiteSetzen(1320); // Spielbereich: 600..1920
         alkoholOverlay.hoeheSetzen(1080);
         alkoholOverlay.positionSetzen(600, 0);
-        alkoholOverlay.farbeSetzen("Blau");
+        alkoholOverlay.farbeSetzen(new java.awt.Color(0, 60, 255, 40)); // halbtransparentes Blau
         alkoholOverlay.sichtbarSetzen(false);
         
         // === JACK'S BLICK ANIMATION (12 Frames) ===
@@ -1089,13 +1089,16 @@ public class PayBackJack extends SPIEL {
         if (alkoholOverlay == null) return;
         int alk = spielstand.getAlkohol();
         if (alk >= 90) {
-            alkoholOverlay.farbeSetzen("Rot");
+            // Stark: tiefrotes, halbdurchsichtiges Overlay
+            alkoholOverlay.farbeSetzen(new java.awt.Color(200, 0, 0, 80));
             alkoholOverlay.sichtbarSetzen(true);
         } else if (alk >= 60) {
-            alkoholOverlay.farbeSetzen("Lila");
+            // Mittel: lila, halbtransparent
+            alkoholOverlay.farbeSetzen(new java.awt.Color(120, 0, 180, 60));
             alkoholOverlay.sichtbarSetzen(true);
         } else if (alk >= 30) {
-            alkoholOverlay.farbeSetzen("Blau");
+            // Leicht: blauer Hauch
+            alkoholOverlay.farbeSetzen(new java.awt.Color(0, 60, 255, 35));
             alkoholOverlay.sichtbarSetzen(true);
         } else {
             alkoholOverlay.sichtbarSetzen(false);
