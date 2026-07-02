@@ -1,0 +1,309 @@
+================================================================
+  JAVA ERKLAERUNGEN - Was noch fehlte
+================================================================
+
+
+----------------------------------------------------------------
+1. STATIC - Klassenattribute und Klassenmethoden
+----------------------------------------------------------------
+
+Normalerweise gehoert jede Variable zu einem bestimmten Objekt:
+
+    Tier meinTier = new Tier("Max", 5);
+    Tier deinTier = new Tier("Bello", 3);
+
+    --> meinTier hat SEINEN eigenen Namen
+    --> deinTier hat SEINEN eigenen Namen
+
+ABER: manchmal will man etwas haben, das zu der KLASSE gehoert
+und nicht zu einem einzelnen Objekt. Das ist "static".
+
+Beispiel - stell dir vor du willst zaehlen wie viele Tiere
+insgesamt erstellt wurden:
+
+    public class Tier {
+        private String name;
+        private static int anzahlTiere = 0;  // gehoert zur KLASSE
+
+        public Tier(String n) {
+            name = n;
+            anzahlTiere = anzahlTiere + 1;  // wird bei jedem neuen Tier erhoeht
+        }
+
+        public static int getAnzahl() {
+            return anzahlTiere;
+        }
+    }
+
+    Tier t1 = new Tier("Max");
+    Tier t2 = new Tier("Bello");
+    Tier t3 = new Tier("Rex");
+
+    System.out.println(Tier.getAnzahl());  // gibt aus: 3
+
+WICHTIG:
+- static-Variablen werden GETEILT von allen Objekten
+- man ruft static-Methoden ueber den KLASSENNAME auf, nicht ueber ein Objekt
+- Deshalb schreibt man Math.random() und nicht new Math().random()
+  --> random() ist eine static-Methode der Klasse Math
+
+
+
+----------------------------------------------------------------
+2. NULL - Was passiert wenn der Zettel auf nichts zeigt?
+----------------------------------------------------------------
+
+Erinnerung: Referenzen sind wie Zettel. Auf dem Zettel steht
+wo das Objekt zu finden ist.
+
+Aber was ist wenn auf dem Zettel NICHTS steht?
+--> Das ist null. Der Zettel existiert, zeigt aber ins Leere.
+
+Beispiel:
+
+    Tier meinTier;            // Zettel wurde erstellt, aber noch LEER
+    meinTier = null;          // explizit: Zettel zeigt auf nichts
+
+    meinTier.getName();       // FEHLER! NullPointerException
+                              // du versuchst etwas von nichts abzurufen
+
+Richtiger Umgang:
+
+    if (meinTier != null) {
+        meinTier.getName();   // nur aufrufen wenn der Zettel wirklich etwas zeigt
+    }
+
+Wann tritt null auf?
+- Wenn man ein Objekt deklariert aber nicht initialisiert
+- Wenn eine ArrayList kein Objekt an einer bestimmten Stelle hat
+- Wenn eine Methode kein Ergebnis zurueckgeben kann (z.B. "nicht gefunden")
+
+Beispiel mit ArrayList:
+
+    ArrayList<Tier> tiere = new ArrayList<Tier>();
+    // Liste ist leer, tiere.get(0) wuerde einen Fehler geben
+    // nicht null, sondern IndexOutOfBoundsException (anderer Fehler)
+
+    Tier gesuchtesTier = null;
+    for (int i = 0; i < tiere.size(); i++) {
+        if (tiere.get(i).getName().equals("Max")) {
+            gesuchtesTier = tiere.get(i);
+        }
+    }
+
+    if (gesuchtesTier != null) {
+        System.out.println("Gefunden!");
+    } else {
+        System.out.println("Nicht gefunden");
+    }
+
+
+
+----------------------------------------------------------------
+3. KONSTRUKTOREN - Wann und warum schreibt man sie?
+----------------------------------------------------------------
+
+Ein Konstruktor ist eine spezielle Methode, die automatisch
+aufgerufen wird wenn man ein Objekt mit "new" erstellt.
+
+Er hat KEINEN Rueckgabetyp (kein void, kein int, nichts)
+und heisst GENAU SO wie die Klasse.
+
+WARUM braucht man ihn?
+--> Um sicherzustellen, dass ein Objekt direkt beim Erstellen
+    sinnvolle Startwerte bekommt.
+
+Ohne Konstruktor:
+
+    Tier meinTier = new Tier();
+    meinTier.setName("Max");    // man muss alles einzeln setzen
+    meinTier.setAlter(5);       // unuebersichtlich, man kann es vergessen
+
+Mit Konstruktor:
+
+    public class Tier {
+        private String name;
+        private int alter;
+
+        // Das ist der Konstruktor:
+        public Tier(String n, int a) {
+            name = n;
+            alter = a;
+        }
+    }
+
+    Tier meinTier = new Tier("Max", 5);  // alles direkt beim Erstellen
+
+Standard-Konstruktor:
+Wenn man keinen Konstruktor schreibt, gibt es automatisch einen
+leeren Konstruktor ohne Parameter. Sobald man aber EINEN eigenen
+schreibt, verschwindet der automatische.
+
+Konstruktor in Unterklasse (super):
+
+    public class Elefant extends Tier {
+        private int ruessellaenge;
+
+        public Elefant(String n, int a, int rues) {
+            super(n, a);           // MUSS als erstes stehen! Ruft Tier-Konstruktor auf
+            ruessellaenge = rues;  // dann kommen die eigenen Sachen
+        }
+    }
+
+    Elefant e = new Elefant("Dumbo", 10, 150);
+
+
+
+----------------------------------------------------------------
+4. PRIMITIVE vs. OBJEKTE - Warum int anders als Integer?
+  (Das ist die Basis fuer == vs .equals())
+----------------------------------------------------------------
+
+Es gibt in Java zwei Arten von Datentypen:
+
+PRIMITIVE (kleingeschrieben):
+    int, double, boolean, char
+
+Diese speichern den Wert DIREKT - sie sind kein Zettel,
+sondern die Variable HAT den Wert selbst.
+
+OBJEKTE (grossgeschrieben, Klassen):
+    Integer, String, ArrayList, Tier, Zebra, ...
+
+Diese speichern eine REFERENZ (Zettel) - die Variable zeigt
+auf ein Objekt irgendwo im Speicher.
+
+
+DAS ist der Grund warum == unterschiedlich funktioniert:
+
+Fuer PRIMITIVE:
+    int a = 5;
+    int b = 5;
+    a == b   // true - vergleicht direkt die Werte (5 == 5)
+
+Fuer OBJEKTE:
+    String a = new String("Hallo");
+    String b = new String("Hallo");
+    a == b           // false! vergleicht die ADRESSEN der Zettel
+                     // zwei verschiedene Zettel, auch wenn Inhalt gleich
+    a.equals(b)      // true! vergleicht den INHALT
+
+Vorstellung:
+    Du und dein Freund haben beide einen Zettel auf dem "Hallo" steht.
+    == fragt: "Sind das derselbe Zettel?" --> Nein (false)
+    .equals() fragt: "Steht darauf dasselbe?" --> Ja (true)
+
+Warum gibt es Integer wenn es int gibt?
+--> Weil manche Dinge (z.B. ArrayList) nur mit Objekten arbeiten.
+    ArrayList<int> geht NICHT
+    ArrayList<Integer> geht  <-- Integer ist die Objekt-Version von int
+
+    Java wandelt int und Integer oft automatisch um (auto-boxing),
+    aber intern sind es verschiedene Dinge.
+
+MERKSATZ:
+    == bei Objekten vergleicht ADRESSEN (Zettel)
+    .equals() vergleicht INHALTE
+    Fuer Strings und eigene Klassen IMMER .equals() benutzen!
+
+
+
+----------------------------------------------------------------
+5. ABSTRACT - Relevant wenn man Polymorphie wirklich versteht
+----------------------------------------------------------------
+
+Das Problem ohne abstract:
+    Du hast eine Klasse Tier mit einer Methode macheGeraeusch().
+    Was soll EIN Tier machen? Tiere machen verschiedene Geraeusche.
+    Die Methode in Tier macht keinen Sinn.
+
+Ohne abstract muss man trotzdem etwas hinschreiben:
+
+    public class Tier {
+        public void macheGeraeusch() {
+            // was schreibe ich hier hin? Nichts sinnvolles...
+        }
+    }
+
+Die Loesung: abstract
+
+    public abstract class Tier {
+        private String name;
+
+        // normaler Code funktioniert weiterhin:
+        public String getName() { return name; }
+
+        // abstract-Methode: kein Inhalt, nur die Pflicht:
+        public abstract void macheGeraeusch();
+    }
+
+Was bedeutet das?
+1. Tier selbst kann nicht mehr mit "new" erstellt werden:
+       Tier t = new Tier();  // FEHLER! Tier ist abstract
+
+2. Jede Unterklasse MUSS macheGeraeusch() implementieren:
+
+    public class Hund extends Tier {
+        @Override
+        public void macheGeraeusch() {
+            System.out.println("Wuff!");
+        }
+    }
+
+    public class Katze extends Tier {
+        @Override
+        public void macheGeraeusch() {
+            System.out.println("Miau!");
+        }
+    }
+
+Warum ist das toll? Polymorphie + abstract zusammen:
+
+    ArrayList<Tier> tiere = new ArrayList<Tier>();
+    tiere.add(new Hund());
+    tiere.add(new Katze());
+    tiere.add(new Hund());
+
+    for (int i = 0; i < tiere.size(); i++) {
+        tiere.get(i).macheGeraeusch();  // jedes Tier macht sein Geraeusch!
+    }
+
+    // Ausgabe:
+    // Wuff!
+    // Miau!
+    // Wuff!
+
+Hier braucht man KEIN instanceof und KEIN Casting!
+Java weiss automatisch welche macheGeraeusch()-Methode gemeint ist.
+
+Merke:
+- abstract class = Klasse die nicht direkt erstellt werden kann
+- abstract Methode = Methode ohne Inhalt, die Unterklassen ZWINGEND
+  implementieren muessen
+- Sinnvoll wenn die Oberklasse einen Begriff beschreibt (Tier, Form,
+  Fahrzeug) aber selbst zu allgemein ist um konkret zu sein
+
+
+
+================================================================
+  ZUSAMMENFASSUNG
+================================================================
+
+static      --> gehoert zur Klasse, nicht zum Objekt
+             --> Aufruf: Klassenname.methode() z.B. Math.random()
+
+null        --> Zettel zeigt ins Leere
+             --> immer auf null pruefen bevor man etwas aufruft!
+
+Konstruktor --> wird bei "new" aufgerufen
+             --> setzt Startwerte, super() muss erste Zeile sein
+
+Primitiv vs Objekt
+             --> int speichert Wert direkt, String/Tier ist Zettel
+             --> deshalb == fuer Objekte NIE inhaltlich vergleichen
+             --> .equals() fuer Inhaltsvergleich bei Objekten
+
+abstract    --> Klasse/Methode die Unterklassen implementieren muessen
+             --> macht Polymorphie richtig nuetzlich (kein instanceof noetig)
+
+================================================================
